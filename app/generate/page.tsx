@@ -1,15 +1,23 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress"
+import { ArrowRight } from "lucide-react"
 
 import { useGeneratePage } from './hooks/useGeneratePage';
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import DateSelector from "./components/DateSelector";
+import ConditionForm from './components/ConditionForm';
+import ConditionList from './components/ConditionsList';
+import { getDisplayValue, getLabelForKey } from './utils';
 
 export default function GeneratePage() {
   const {
-    currentStep, formData, handleDateChange
+    currentStep, formData, handleDateChange,
+    ageGroupOptions, occupationOptions, preferenceOptions,
+    handleInputChange, handleAddCondition, isFormValid, handleDeleteCondition,
+    savedConditions, isLoading, nextStep, isAnalyzing
   } = useGeneratePage();
 
   return (
@@ -44,6 +52,29 @@ export default function GeneratePage() {
               formData={formData}
               handleDateChange={handleDateChange}
             />
+            <ConditionForm
+              formData={formData}
+              onInputChange={handleInputChange}
+              onAddCondition={handleAddCondition}
+              isFormValid={isFormValid}
+              isLoading={isLoading}
+              ageGroupOptions={ageGroupOptions}
+              occupationOptions={occupationOptions}
+              preferenceOptions={preferenceOptions}
+            />
+
+            <ConditionList 
+              conditions={savedConditions}
+              onDelete={handleDeleteCondition}
+              getDisplayValue={(key, value) => getDisplayValue(key, value, { ageGroupOptions, occupationOptions, preferenceOptions })}
+              getLabelForKey={getLabelForKey}
+            />
+
+            <div className="flex justify-end mt-6">
+                <Button onClick={nextStep} disabled={isAnalyzing || savedConditions.length === 0 || !formData.durationStart || !formData.durationEnd}>
+                    {isAnalyzing ? "분석 중..." : "분석 및 미리보기"} <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            </div>
           </>
         )}
       </div>

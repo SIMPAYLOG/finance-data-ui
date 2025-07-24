@@ -7,3 +7,31 @@ export interface FrontendFormDataItem {
   durationStart: Date | undefined;
   durationEnd: Date | undefined;
 }
+
+export interface AgeGroupOption {
+  id: string;
+  groupName: string;
+}
+
+export interface OccupationOption {
+  id: string;
+  categoryName: string;
+}
+
+export interface PreferenceOption {
+  id: string;
+  name: string;
+}
+
+export interface BackendOptionItem {
+  id: number;
+  userCount: number;
+  preferenceId: string | number;
+  ageGroup: string;
+  gender: string;
+  occupationCode: string | number;
+}
+
+export interface BackendPayload {
+  conditions: Omit<BackendOptionItem, 'id'>[];
+}
