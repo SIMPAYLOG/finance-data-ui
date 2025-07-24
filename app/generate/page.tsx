@@ -10,6 +10,7 @@ import { Header } from "@/components/layout/header";
 import DateSelector from "./components/DateSelector";
 import ConditionForm from './components/ConditionForm';
 import ConditionList from './components/ConditionsList';
+import StatusGraphs from './components/StatusGraphs';
 import { getDisplayValue, getLabelForKey } from './utils';
 
 export default function GeneratePage() {
@@ -17,7 +18,7 @@ export default function GeneratePage() {
     currentStep, formData, handleDateChange,
     ageGroupOptions, occupationOptions, preferenceOptions,
     handleInputChange, handleAddCondition, isFormValid, handleDeleteCondition,
-    savedConditions, isLoading, nextStep, isAnalyzing
+    savedConditions, isLoading, nextStep, isAnalyzing, frontendCalculatedGraphs
   } = useGeneratePage();
 
   return (
@@ -48,6 +49,7 @@ export default function GeneratePage() {
 
         {currentStep === 1 && (
           <>
+          <StatusGraphs data={frontendCalculatedGraphs} getLabelForKey={getLabelForKey}/>
             <DateSelector
               formData={formData}
               handleDateChange={handleDateChange}

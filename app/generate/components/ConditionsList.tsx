@@ -21,7 +21,7 @@ const ConditionsList: React.FC<ConditionsListProps> = ({
         {conditions.length === 0 ? <p className="text-sm text-gray-500">조건이 없습니다.</p> : (
           <div className="space-y-4">
             {conditions.map((conditionSet) => (
-              <div key={conditionSet.id} className="relative flex flex-wrap items-center gap-2 p-3 bg-gray-50 rounded-md">
+              <div key={conditionSet.id} className="relative flex flex-wrap items-center gap-2 p-3 bg-gray-100 rounded-md">
                 {Object.entries(conditionSet).filter(([key]) => !['id', 'userCount'].includes(key)).map(([key, value]) => (
                   <span key={key} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     {getLabelForKey(key)}: {getDisplayValue(key, value)}

@@ -35,3 +35,17 @@ export interface BackendOptionItem {
 export interface BackendPayload {
   conditions: Omit<BackendOptionItem, 'id'>[];
 }
+
+export interface FrontendCalculatedGraphs {
+  ageData: { name: string; value: number }[];
+  genderData: { name: string; value: number }[];
+  consumptionData: { name: string; value: number }[];
+  totalUserCount: number;
+}
+
+export interface FrontendCalculatedGraphs {
+  ageData: { name: string; value: number }[];
+  genderData: { name: string; value: number }[];
+  consumptionData: { name: string; value: number }[];
+  totalUserCount: number;
+}

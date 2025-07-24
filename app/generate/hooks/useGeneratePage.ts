@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import type {
   FrontendFormDataItem, AgeGroupOption, OccupationOption, PreferenceOption,
-  BackendOptionItem, BackendPayload
+  BackendOptionItem, BackendPayload, FrontendCalculatedGraphs
 } from '../types';
+
+import { getDisplayValue } from '../utils';
 
 const initialFormData: FrontendFormDataItem = {
   ageRange: "", gender: "", occupation: "", consumptionType: "",
@@ -88,6 +90,12 @@ export function useGeneratePage() {
             userCount: userCountNum,
         };
         setSavedConditions((prev) => [...prev, newBackendOption]);
+
+        setFormData(prev => ({ 
+            ...initialFormData, 
+            durationStart: prev.durationStart, 
+            durationEnd: prev.durationEnd 
+        }));
     };
 
     const handleDeleteCondition = (idToDelete: number) => {
@@ -137,12 +145,34 @@ export function useGeneratePage() {
         if (currentStep > 1) setCurrentStep(currentStep - 1);
     };
     
+    const frontendCalculatedGraphs: FrontendCalculatedGraphs = useMemo(() => {
+        const ageCounts: Record<string, number> = {};
+        const genderCounts: Record<string, number> = {};
+        const consumptionCounts: Record<string, number> = {};
+        let currentTotalUsers = 0;
+        const optionsForDisplay = { ageGroupOptions, occupationOptions, preferenceOptions };
+        savedConditions.forEach(condition => {
+            currentTotalUsers += condition.userCount;
+            const ageName = getDisplayValue('ageGroup', condition.ageGroup, optionsForDisplay);
+            ageCounts[ageName] = (ageCounts[ageName] || 0) + condition.userCount;
+            const genderName = getDisplayValue('gender', condition.gender, optionsForDisplay);
+            genderCounts[genderName] = (genderCounts[genderName] || 0) + condition.userCount;
+            const preferenceName = getDisplayValue('preferenceId', condition.preferenceId, optionsForDisplay);
+            consumptionCounts[preferenceName] = (consumptionCounts[preferenceName] || 0) + condition.userCount;
+        });
+        return {
+            ageData: Object.entries(ageCounts).map(([name, value]) => ({ name, value })),
+            genderData: Object.entries(genderCounts).map(([name, value]) => ({ name, value })),
+            consumptionData: Object.entries(consumptionCounts).map(([name, value]) => ({ name, value })),
+            totalUserCount: currentTotalUsers
+        };
+    }, [savedConditions, ageGroupOptions, occupationOptions, preferenceOptions]);
 
     return {
         currentStep, formData, savedConditions, isLoading,
         ageGroupOptions, occupationOptions, preferenceOptions,
         isFormValid, handleInputChange, handleAddCondition, handleDeleteCondition,
-        handleDateChange, prevStep, nextStep, isAnalyzing
+        handleDateChange, prevStep, nextStep, isAnalyzing, frontendCalculatedGraphs
     };
 
     
