@@ -34,6 +34,8 @@ export interface BackendOptionItem {
 
 export interface BackendPayload {
   conditions: Omit<BackendOptionItem, 'id'>[];
+  durationStart: Date | undefined;
+  durationEnd: Date | undefined;
 }
 
 export interface FrontendCalculatedGraphs {
@@ -48,4 +50,20 @@ export interface FrontendCalculatedGraphs {
   genderData: { name: string; value: number }[];
   consumptionData: { name: string; value: number }[];
   totalUserCount: number;
+}
+
+export interface SampleUser {
+  name: string;
+  gender: string;
+  age: number;
+  preferenceId: string;
+  occupationName: string;
+}
+
+export interface AnalysisResult {
+  totalUsers: number;
+  ageDistribution: { ageGroup: string; count: number }[];
+  occupationDistribution: { occupationCategory: string; count: number }[];
+  genderDistribution: { male: number; female: number };
+  preferenceDistribution: { preference: string; count: number }[];
 }

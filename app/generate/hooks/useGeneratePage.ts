@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 import type {
   FrontendFormDataItem, AgeGroupOption, OccupationOption, PreferenceOption,
-  BackendOptionItem, BackendPayload, FrontendCalculatedGraphs
+  BackendOptionItem, BackendPayload, FrontendCalculatedGraphs, AnalysisResult,
+  SampleUser
 } from '../types';
 
 import { getDisplayValue } from '../utils';
@@ -116,7 +118,9 @@ export function useGeneratePage() {
             setIsAnalyzing(true);
             try {
                 const createPayload: BackendPayload = {
-                    conditions: savedConditions.map(({ id, ...rest }) => ({...rest, preferenceId: String(rest.preferenceId)}))
+                    conditions: savedConditions.map(({ id, ...rest }) => ({...rest, preferenceId: String(rest.preferenceId)})),
+                    durationStart: formData.durationStart,
+                    durationEnd: formData.durationEnd
                 };
                 const createResponse = await fetch('http://localhost:8080/api/users', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -129,6 +133,7 @@ export function useGeneratePage() {
                 
                 const analysisData = await analyzeResponse.json();
                 if (analysisData.status.code === 'SUCCESS') {
+                    setAnalysisResult(analysisData.result);
                     setCurrentStep(2);
                 } else {
                     throw new Error(analysisData.status.message || '분석 결과 처리에 실패했습니다.');
@@ -168,11 +173,65 @@ export function useGeneratePage() {
         };
     }, [savedConditions, ageGroupOptions, occupationOptions, preferenceOptions]);
 
+
+    const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+
+    const analysisGraphs = useMemo(() => {
+        if (!analysisResult) return null;
+        const { ageDistribution, occupationDistribution, genderDistribution, totalUsers } = analysisResult;
+        return { 
+            ageData: ageDistribution.map(item => ({ name: `${item.ageGroup}대`, value: item.count })),
+            occupationData: occupationDistribution.map(item => ({ name: item.occupationCategory, value: item.count })),
+            genderData: Object.entries(genderDistribution).map(([key, value]) => ({ name: key === 'male' ? '남성' : '여성', value: value as number })),
+            totalUserCount: totalUsers 
+        };
+    }, [analysisResult]);
+
+    const [hasMore, setHasMore] = useState(true);
+    const [userSamples, setUserSamples] = useState<SampleUser[]>([]);
+    const [isFetchingSamples, setIsFetchingSamples] = useState(false);
+
+    const router = useRouter();
+    const generateData = () => {
+        router.push(`/generate/simulation?durationStart=${formData.durationStart}&durationEnd=${formData.durationEnd}`);
+    };
+
+    const [page, setPage] = useState(0);
+    const fetchUserSamples = useCallback(async (pageNum: number) => {
+        if (isFetchingSamples) return;
+        setIsFetchingSamples(true);
+        try {
+          const response = await fetch(`http://localhost:8080/api/users/list?page=${pageNum}`);
+          if (!response.ok) throw new Error('샘플 데이터 로드 실패');
+          const data = await response.json();
+          if (data.status.code === 'SUCCESS') {
+            setUserSamples(prev => [...prev, ...data.result.content]);
+            setPage(pageNum + 1);
+            setHasMore(!data.result.last);
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsFetchingSamples(false);
+        }
+    }, [isFetchingSamples]);
+
+    useEffect(() => {
+        if (currentStep === 2 && analysisResult && userSamples.length === 0) {
+          setPage(0);
+          setUserSamples([]);
+          setHasMore(true);
+          fetchUserSamples(0);
+        }
+    }, [currentStep, analysisResult, fetchUserSamples]);
+
     return {
         currentStep, formData, savedConditions, isLoading,
         ageGroupOptions, occupationOptions, preferenceOptions,
         isFormValid, handleInputChange, handleAddCondition, handleDeleteCondition,
-        handleDateChange, prevStep, nextStep, isAnalyzing, frontendCalculatedGraphs
+        handleDateChange, prevStep, nextStep, isAnalyzing, frontendCalculatedGraphs,
+        analysisGraphs, userSamples, isFetchingSamples, hasMore, generateData,
+        fetchUserSamples, page
     };
 
     

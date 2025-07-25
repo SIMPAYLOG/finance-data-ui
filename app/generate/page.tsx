@@ -11,6 +11,7 @@ import DateSelector from "./components/DateSelector";
 import ConditionForm from './components/ConditionForm';
 import ConditionList from './components/ConditionsList';
 import StatusGraphs from './components/StatusGraphs';
+import AnalysisView from './components/AnalysisView';
 import { getDisplayValue, getLabelForKey } from './utils';
 
 export default function GeneratePage() {
@@ -18,7 +19,9 @@ export default function GeneratePage() {
     currentStep, formData, handleDateChange,
     ageGroupOptions, occupationOptions, preferenceOptions,
     handleInputChange, handleAddCondition, isFormValid, handleDeleteCondition,
-    savedConditions, isLoading, nextStep, isAnalyzing, frontendCalculatedGraphs
+    savedConditions, isLoading, nextStep, isAnalyzing, frontendCalculatedGraphs,
+    analysisGraphs, userSamples, isFetchingSamples, hasMore, prevStep, generateData,
+    fetchUserSamples, page
   } = useGeneratePage();
 
   return (
@@ -78,6 +81,21 @@ export default function GeneratePage() {
                 </Button>
             </div>
           </>
+        )}
+
+        {currentStep === 2 && (
+            <AnalysisView
+                analysisGraphs={analysisGraphs}
+                getLabelForKey={getLabelForKey}
+                userSamples={userSamples}
+                isFetchingSamples={isFetchingSamples}
+                hasMore={hasMore}
+                getDisplayValue={(key, value) => getDisplayValue(key, value, { ageGroupOptions, occupationOptions, preferenceOptions })}
+                prevStep={prevStep}
+                generateData={generateData}
+                fetchUserSamples={fetchUserSamples}
+                page={page}
+            />
         )}
       </div>
       <Footer />
