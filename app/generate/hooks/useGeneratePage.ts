@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 
 import type {
   FrontendFormDataItem, AgeGroupOption, OccupationOption, PreferenceOption,
@@ -17,13 +18,16 @@ export function useGeneratePage() {
   const [formData, setFormData] = useState<FrontendFormDataItem>(initialFormData);  
 
     const handleDateChange = (field: 'durationStart' | 'durationEnd', date: Date | undefined) => {
+        const normalizedDate = date 
+            ? new Date(date.getFullYear(), date.getMonth(), date.getDate()) 
+            : undefined;
         setFormData((prev) => {
             const newState = {
                 ...prev,
-                [field]: date,
+                [field]: normalizedDate, // 정규화된 날짜를 저장
             };
 
-            if (field === 'durationStart' && !date) {
+            if (field === 'durationStart' && !normalizedDate) {
                 newState.durationEnd = undefined;
             }
 
@@ -193,7 +197,22 @@ export function useGeneratePage() {
 
     const router = useRouter();
     const generateData = () => {
-        router.push(`/generate/simulation?durationStart=${formData.durationStart}&durationEnd=${formData.durationEnd}`);
+      const { durationStart, durationEnd } = formData;
+      if (!durationStart || !durationEnd) {
+        alert("기간을 선택해주세요.");
+        return;
+      }
+
+      const fromStr = format(durationStart, "yyyy-MM-dd");
+      const toStr = format(durationEnd, "yyyy-MM-dd");
+      
+      console.log("날짜 변경됨:", {
+            durationStart: fromStr,
+            durationEnd: toStr
+        });
+
+      router.push(`/generate/simulation?durationStart=${fromStr}&durationEnd=${toStr}`);
+        // router.push(`/generate/simulation?durationStart=${formData.durationStart}&durationEnd=${formData.durationEnd}`);
     };
 
     const [page, setPage] = useState(0);
