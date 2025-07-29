@@ -1,3 +1,5 @@
+"use client";
+import { useSessionStore } from '@/store/useSessionStore';
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -113,12 +115,15 @@ export function useGeneratePage() {
     const [currentStep, setCurrentStep] = useState(1);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+    const { setSessionId } = useSessionStore();
+
     const nextStep = async () => {
         if (currentStep === 1) {
             if (savedConditions.length === 0 || !formData.durationStart || !formData.durationEnd) {
                 alert("최소 하나 이상의 조건과 기간을 설정해야 합니다.");
                 return;
             }
+
             setIsAnalyzing(true);
             try {
                 const createPayload: BackendPayload = {
@@ -127,14 +132,23 @@ export function useGeneratePage() {
                     durationEnd: formData.durationEnd
                 };
                 const createResponse = await fetch('http://localhost:8080/api/users', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(createPayload),
                 });
+
                 if (!createResponse.ok) throw new Error('데이터 생성 요청 실패');
-                
-                const analyzeResponse = await fetch('http://localhost:8080/api/users/analyze');
+                const createResult = await createResponse.json();
+                const sessionId = createResult.result;
+                if (!sessionId) throw new Error("세션 ID를 받아오지 못했습니다.");
+
+                setSessionId(sessionId); // ✅ 전역 상태에 저장
+                console.log("받은 세션 ID:", sessionId);
+
+                const query = new URLSearchParams({ sessionId });
+                const analyzeResponse = await fetch(`http://localhost:8080/api/users/analyze?${query}`);
                 if (!analyzeResponse.ok) throw new Error('분석 결과 요청 실패');
-                
+            
                 const analysisData = await analyzeResponse.json();
                 if (analysisData.status.code === 'SUCCESS') {
                     setAnalysisResult(analysisData.result);
@@ -202,7 +216,6 @@ export function useGeneratePage() {
         alert("기간을 선택해주세요.");
         return;
       }
-
       const fromStr = format(durationStart, "yyyy-MM-dd");
       const toStr = format(durationEnd, "yyyy-MM-dd");
       
@@ -210,8 +223,8 @@ export function useGeneratePage() {
             durationStart: fromStr,
             durationEnd: toStr
         });
-
-      router.push(`/generate/simulation?durationStart=${fromStr}&durationEnd=${toStr}`);
+      const sessionId = useSessionStore.getState().sessionId;
+      router.push(`/generate/simulation?sessionId=${sessionId}&durationStart=${fromStr}&durationEnd=${toStr}`);
         // router.push(`/generate/simulation?durationStart=${formData.durationStart}&durationEnd=${formData.durationEnd}`);
     };
 
@@ -220,7 +233,8 @@ export function useGeneratePage() {
         if (isFetchingSamples) return;
         setIsFetchingSamples(true);
         try {
-          const response = await fetch(`http://localhost:8080/api/users/list?page=${pageNum}`);
+          const sessionId = useSessionStore.getState().sessionId;
+          const response = await fetch(`http://localhost:8080/api/users/list?page=${pageNum}&sessionId=${sessionId}`);
           if (!response.ok) throw new Error('샘플 데이터 로드 실패');
           const data = await response.json();
           if (data.status.code === 'SUCCESS') {
