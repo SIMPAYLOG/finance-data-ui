@@ -1,5 +1,6 @@
 "use client"
 
+import { useSearchParams } from "next/navigation";
 import { useState } from "react"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
@@ -13,11 +14,17 @@ import {Footer} from "@/components/layout/footer"
 import {Header} from "@/components/layout/header"
 
 export default function AdvancedTransactionDashboard() {
+
+  const searchParams = useSearchParams();
+  const durationStart = searchParams.get('durationStart');
+  const durationEnd = searchParams.get('durationEnd');
+
   const [analysisMode, setAnalysisMode] = useState<"individual" | "collective">("individual")
   const [isEditMode, setIsEditMode] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [sessionId, setSessionId] = useState(searchParams.get("sessionId") ?? "")
   const [filters, setFilters] = useState({
-    dateRange: { start: "2024-01-01", end: "2025-12-31" },
+    dateRange: { start: durationStart, end: durationEnd },
     categories: [],
     subcategories: [],
     transactionType: "all",

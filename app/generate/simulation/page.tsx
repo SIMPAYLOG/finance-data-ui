@@ -10,6 +10,7 @@ import { BarChart3, ArrowLeft, Download } from "lucide-react";
 
 function SimulationContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const sessionId = searchParams.get('sessionId');
   const durationStart = searchParams.get('durationStart');
   const durationEnd = searchParams.get('durationEnd');
@@ -58,6 +59,11 @@ function SimulationContent() {
                 <Button className="w-full" variant="outline" onClick={() => alert('CSV 다운로드')}>
                   <Download className="mr-2 h-4 w-4" /> CSV 다운로드
                 </Button>
+                <Button className="w-full" variant="secondary" onClick={() => {
+                  router.push(`/analyze?sessionId=${sessionId}&durationStart=${durationStart}&durationEnd=${durationEnd}`);
+                }}>
+      분석 페이지로 이동
+    </Button>
               </div>
             )}
 
