@@ -1,5 +1,6 @@
 "use client"
 
+import { useSessionStore } from "@/store/useSessionStore"
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,7 +25,7 @@ export default function DailyComparisonChart({
   onRemove,
   onEdit,
 }: WeeklyComparisonChartProps) {
-
+  const sessionId = useSessionStore((state) => state.sessionId)
   const [data, setData] = useState<
     { month: string; income: number; expense: number }[]
   >([])
@@ -35,7 +36,7 @@ export default function DailyComparisonChart({
       setLoading(true)
       try {
         const res = await fetch(
-          "http://localhost:8080/api/analysis/search-by-period?sessionId=6de97703-e4bd-40fd-81b8-b40cd3b174dd&durationStart=2025-07-01&durationEnd=2025-08-31&interval=week"
+          `http://localhost:8080/api/analysis/search-by-period?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}&interval=week`
         )
         const json = await res.json()
 

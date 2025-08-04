@@ -1,5 +1,6 @@
 "use client"
 
+import { useSessionStore } from "@/store/useSessionStore"
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,7 +25,7 @@ export default function MonthlyComparisonChart({
   onRemove,
   onEdit,
 }: MonthlyComparisonChartProps) {
-
+  const sessionId = useSessionStore((state) => state.sessionId)
   const [data, setData] = useState<
     { month: string; income: number; expense: number }[]
   >([])
@@ -32,10 +33,11 @@ export default function MonthlyComparisonChart({
 
   useEffect(() => {
     const fetchChartData = async () => {
+      if (!sessionId || !filters?.dateRange?.start || !filters?.dateRange?.end) return
       setLoading(true)
       try {
         const res = await fetch(
-          "http://localhost:8080/api/analysis/search-by-period?sessionId=6de97703-e4bd-40fd-81b8-b40cd3b174dd&durationStart=2025-07-01&durationEnd=2025-08-31&interval=month"
+          `http://localhost:8080/api/analysis/search-by-period?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}&interval=month`
         )
         const json = await res.json()
 
@@ -60,20 +62,6 @@ export default function MonthlyComparisonChart({
     fetchChartData()
   }, [])
 
-  // const data = [
-  //   { month: "1월", income: 3500000, expense: 2800000 },
-  //   { month: "2월", income: 3600000, expense: 2900000 },
-  //   { month: "3월", income: 3400000, expense: 3100000 },
-  //   { month: "4월", income: 3700000, expense: 2700000 },
-  //   { month: "5월", income: 3800000, expense: 3200000 },
-  //   { month: "6월", income: 3500000, expense: 2900000 },
-  //   { month: "7월", income: 3600000, expense: 3000000 },
-  //   { month: "8월", income: 3900000, expense: 3300000 },
-  //   { month: "9월", income: 3700000, expense: 2800000 },
-  //   { month: "10월", income: 3800000, expense: 3100000 },
-  //   { month: "11월", income: 3600000, expense: 2900000 },
-  //   { month: "12월", income: 4000000, expense: 3500000 },
-  // ]
 
   if (isLoading) {
     return (
