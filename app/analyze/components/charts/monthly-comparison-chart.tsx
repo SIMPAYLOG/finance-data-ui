@@ -33,34 +33,34 @@ export default function MonthlyComparisonChart({
 
   useEffect(() => {
     const fetchChartData = async () => {
-      if (!sessionId || !filters?.dateRange?.start || !filters?.dateRange?.end) return
-      setLoading(true)
+      if (!sessionId || !filters?.dateRange?.start || !filters?.dateRange?.end) return;
+      setLoading(true);
       try {
         const res = await fetch(
           `http://localhost:8080/api/analysis/search-by-period?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}&interval=month`
-        )
-        const json = await res.json()
-
-        const transformed = json.result.data.map((item: any) => {
-          const date = new Date(item.key)
-          const month = `${date.getMonth() + 1}월`
+        );
+        const json = await res.json();
+         const transformed = json.result.data.map((item: any) => {
+         const date = new Date(item.key);
+         const month = `${date.getMonth() + 1}월`;
           return {
-            month,
-            income: item.incomeAmountSum,
-            expense: item.spentAmountSum,
-          }
-        })
+           month,
+           income: item.incomeAmountSum,
+           expense: item.spentAmountSum,
+          };
+        });
 
-        setData(transformed)
-      } catch (error) {
-        console.error("데이터 불러오기 실패", error)
-      } finally {
-        setLoading(false)
-      }
-    }
+       setData(transformed);
+       console.log("가공된 데이터:", transformed);
+     } catch (error) {
+       console.error("데이터 불러오기 실패", error);
+     } finally {
+       setLoading(false);
+     }
+    };
 
-    fetchChartData()
-  }, [])
+    fetchChartData();
+  }, [sessionId, filters?.dateRange?.start, filters?.dateRange?.end]);
 
 
   if (isLoading) {

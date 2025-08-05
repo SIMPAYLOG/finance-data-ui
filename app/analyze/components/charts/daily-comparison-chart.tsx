@@ -59,22 +59,7 @@ export default function DailyComparisonChart({
     }
 
     fetchChartData()
-  }, [])
-
-  // const data = [
-  //   { month: "1월", income: 3500000, expense: 2800000 },
-  //   { month: "2월", income: 3600000, expense: 2900000 },
-  //   { month: "3월", income: 3400000, expense: 3100000 },
-  //   { month: "4월", income: 3700000, expense: 2700000 },
-  //   { month: "5월", income: 3800000, expense: 3200000 },
-  //   { month: "6월", income: 3500000, expense: 2900000 },
-  //   { month: "7월", income: 3600000, expense: 3000000 },
-  //   { month: "8월", income: 3900000, expense: 3300000 },
-  //   { month: "9월", income: 3700000, expense: 2800000 },
-  //   { month: "10월", income: 3800000, expense: 3100000 },
-  //   { month: "11월", income: 3600000, expense: 2900000 },
-  //   { month: "12월", income: 4000000, expense: 3500000 },
-  // ]
+  }, [sessionId, filters?.dateRange?.start, filters?.dateRange?.end])
 
   if (isLoading) {
     return (

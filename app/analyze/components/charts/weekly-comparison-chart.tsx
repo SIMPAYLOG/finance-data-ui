@@ -60,7 +60,7 @@ export default function DailyComparisonChart({
     }
 
     fetchChartData()
-  }, [])
+  }, [sessionId, filters?.dateRange?.start, filters?.dateRange?.end])
 
   if (isLoading) {
     return (

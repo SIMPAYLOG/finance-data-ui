@@ -60,7 +60,7 @@ function SimulationContent() {
                   <Download className="mr-2 h-4 w-4" /> CSV 다운로드
                 </Button>
                 <Button className="w-full" variant="secondary" onClick={() => {
-                  router.push(`/analyze?sessionId=${sessionId}&durationStart=${durationStart}&durationEnd=${durationEnd}`);
+                  router.push(`/analyze?durationStart=${durationStart}&durationEnd=${durationEnd}`);
                 }}>
       분석 페이지로 이동
     </Button>
