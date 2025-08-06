@@ -17,6 +17,7 @@ export default function WidgetSelector({ onAddWidget }: WidgetSelectorProps) {
     { type: "category-pie", name: "카테고리별 지출 비중", icon: PieChart },
     { type: "collective-comparison", name: "집단 평균 비교", icon: Users },
     { type: "top-categories", name: "상위 소비 카테고리", icon: List },
+    { type: "heatmap-chart", name: "요일-시간별 트랜잭션 밀도", icon: Heatmap },
   ]
 
   return (

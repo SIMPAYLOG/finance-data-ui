@@ -40,9 +40,9 @@ export default function MonthlyComparisonChart({
           `http://localhost:8080/api/analysis/search-by-period?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}&interval=month`
         );
         const json = await res.json();
-         const transformed = json.result.data.map((item: any) => {
-         const date = new Date(item.key);
-         const month = `${date.getMonth() + 1}월`;
+        const transformed = json.result.data.map((item: any) => {
+        const date = new Date(item.key);
+        const month = `${date.getMonth() + 1}월`;
           return {
            month,
            income: item.incomeAmountSum,

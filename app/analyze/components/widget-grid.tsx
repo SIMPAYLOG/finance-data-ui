@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useDrop } from "react-dnd"
 import DraggableWidget from "./draggable-widget"
+import HeatmapChart from "./charts/heatmap-chart"
 import MonthlyComparisonChart from "./charts/monthly-comparison-chart"
 import DailyComparisonChart from "./charts/daily-comparison-chart"
 import WeeklyComparisonChart from "./charts/weekly-comparison-chart"
@@ -29,6 +30,7 @@ export default function WidgetGrid({ isEditMode, filters, analysisMode, isLoadin
     { id: "top-categories", type: "top-categories", position: { x: 3, y: 1 }, size: { w: 1, h: 1 } },
     { id: "daily-comparison", type: "daily-comparison", position: { x: 0, y: 2 }, size: { w: 2, h: 1 } },
     { id: "weekly-comparison", type: "weekly-comparison", position: { x: 2, y: 1 }, size: { w: 2, h: 1 } },
+    { id: "heatmap-chart", type: "heatmap-chart", position: { x: 2, y: 2 }, size: { w: 2, h: 1 } },
   ])
 
   const [editingWidget, setEditingWidget] = useState<string | null>(null)
@@ -91,6 +93,8 @@ export default function WidgetGrid({ isEditMode, filters, analysisMode, isLoadin
     }
 
     switch (widget.type) {
+      case "heatmap-chart":
+        return <HeatmapChart {...commonProps}/>
       case "weekly-comparison":
         return <WeeklyComparisonChart {...commonProps}/>
       case "daily-comparison":
