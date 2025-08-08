@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, BarChart3, TrendingUp, PieChart, Users, List, CalendarDays } from "lucide-react"
+import { Plus, BarChart3, TrendingUp, PieChart, Users, List, CalendarDays, Heater } from "lucide-react"
 
 interface WidgetSelectorProps {
   onAddWidget: (type: string) => void
@@ -17,7 +17,8 @@ export default function WidgetSelector({ onAddWidget }: WidgetSelectorProps) {
     { type: "category-pie", name: "카테고리별 지출 비중", icon: PieChart },
     { type: "collective-comparison", name: "집단 평균 비교", icon: Users },
     { type: "top-categories", name: "상위 소비 카테고리", icon: List },
-    { type: "heatmap-chart", name: "요일-시간별 트랜잭션 밀도", icon: Heatmap },
+    { type: "heatmap-chart", name: "요일-시간별 트랜잭션 밀도", icon: Heater },
+    { type: "hourly-amount-average", name: "hourly-amount-average", icon:TrendingUp},
   ]
 
   return (
