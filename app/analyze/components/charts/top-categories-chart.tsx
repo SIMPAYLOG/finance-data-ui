@@ -1,10 +1,11 @@
 "use client"
 
 import { useSessionStore } from "@/store/useSessionStore"
-import { useEffect, useState } from "react"
+import { useMemo, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { X, Edit, List, AlertTriangle } from "lucide-react"
+import { useChartData } from "@/app/analyze/hooks/useChartData"
 
 interface TopCategoriesChartProps {
   filters: any
@@ -36,52 +37,38 @@ export default function TopCategoriesChart({
   onEdit,
 }: TopCategoriesChartProps) {
   const sessionId = useSessionStore((state) => state.sessionId)
-  const [chartData, setChartData] = useState<ChartData[]>([])
-  const [isFetching, setIsFetching] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsFetching(true)
-      setError(null)
-      try {
-        const response = await fetch(
-          `http://localhost:8080/api/charts/top-volume-category-counts?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}`
-        )
-
-        if (!response.ok) {
-          throw new Error("서버에서 데이터를 가져오는데 실패했습니다.")
-        }
-
-        const res = await response.json()
-
-        if (res.status.code !== "SUCCESS") {
-          throw new Error(res.status.message || "API 응답 에러가 발생했습니다.")
-        }
-
-        const transformedData = res.result.data
-          .sort((a: ApiChartData, b: ApiChartData) => b.totalAmount - a.totalAmount)
-          .slice(0, 5)
-          .map((item: ApiChartData, index: number) => ({
-            category: item.name,
-            amount: item.totalAmount,
-            rank: index + 1, // 순위 부여
-          }))
-
-        setChartData(transformedData)
-      } catch (err: any) {
-        console.error("Error fetching top categories data:", err)
-        setError(err.message || "데이터를 불러오는 중 오류가 발생했습니다.")
-      } finally {
-        setIsFetching(false)
-      }
+  const fetchUrl = useMemo(() => {
+    if (!sessionId || !filters.dateRange.start) {
+      return null
     }
-
-    fetchData()
+    return `http://localhost:8080/api/charts/top-volume-category-counts?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}`
   }, [sessionId, filters?.dateRange?.start, filters?.dateRange?.end])
 
+  const transformData = useCallback((result: any): ChartData[] => {
+    if (!result || !result.data) {
+      return []
+    }
+    return result.data
+      .sort((a: ApiChartData, b: ApiChartData) => b.totalAmount - a.totalAmount)
+      .slice(0, 5)
+      .map((item: ApiChartData, index: number) => ({
+        category: item.name,
+        amount: item.totalAmount,
+        rank: index + 1, // 순위 부여
+      }))
+  }, [])
+
+  const { 
+    data: chartData,
+    isLoading: isFetching, 
+    error 
+  } = useChartData<ChartData>({
+    fetchUrl,
+    transformData,
+  })
+
   const renderContent = () => {
-    // 로딩 상태
+    // 부모의 로딩 상태 또는 자체 로딩 상태
     if (isLoading || isFetching) {
       return (
         <div className="flex items-center justify-center h-[250px]">
@@ -102,7 +89,7 @@ export default function TopCategoriesChart({
     }
 
     // 데이터가 없는 상태
-    if (chartData.length === 0) {
+    if (!chartData || chartData.length === 0) {
       return (
         <div className="flex items-center justify-center h-[250px]">
           <p className="text-center text-muted-foreground">표시할 데이터가 없습니다.</p>
