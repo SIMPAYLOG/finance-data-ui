@@ -114,8 +114,7 @@ export default function AgeGroupComparisonChart({
                 <ChartTooltipContent
                    formatter={(value, name) => {
 
-                    const label = String(name) === 'income' ? '평균 수입' : '평균 지출';
-                    
+                    const label = String(name);
                     const numericValue = parseFloat(String(value));
 
                     if (isNaN(numericValue)) {
