@@ -13,6 +13,7 @@ import CollectiveComparisonChart from "./charts/collective-comparison-chart"
 import TopCategoriesChart from "./charts/top-categories-chart"
 import IncomeExpensesCharByAgeGroup from "./charts/income-expenses-ageGroup"
 import IncomeExpensesCharByPreference from "./charts/income-expenses-preference"
+import HourlyAmountAverageChart from "./charts/hourly-amount-average-chart"
 import WidgetSelector from "./widget-selector"
 import ChartEditModal from "./chart-edit-modal"
 
@@ -35,6 +36,7 @@ export default function WidgetGrid({ isEditMode, filters, analysisMode, isLoadin
     { id: "heatmap-chart", type: "heatmap-chart", position: { x: 2, y: 2 }, size: { w: 2, h: 1 } },
     { id: "income-expenses-ageGroup", type: "income-expenses-ageGroup", position: { x: 3, y: 0 }, size: { w: 2, h: 1 } },
     { id: "income-expenses-preference", type: "income-expenses-preference", position: { x: 3, y: 0 }, size: { w: 2, h: 1 } },
+    { id: "hourly-amount-average", type: "hourly-amount-average", position: { x: 0, y: 0 }, size: { w: 2, h: 1 } },
   ])
 
   const [editingWidget, setEditingWidget] = useState<string | null>(null)
@@ -117,13 +119,17 @@ export default function WidgetGrid({ isEditMode, filters, analysisMode, isLoadin
         return <IncomeExpensesCharByAgeGroup {...commonProps} />
       case "income-expenses-preference" :
         return <IncomeExpensesCharByPreference {...commonProps} />        
+
+      case "hourly-amount-average":
+        return <HourlyAmountAverageChart {...commonProps} />
+
       default:
         return null
     }
   }
 
   return (
-    <div ref={drop} className="relative">
+    <div ref={drop as unknown as React.LegacyRef<HTMLDivElement>} className="relative">
       {isEditMode && <WidgetSelector onAddWidget={addWidget} />}
 
       <div className="grid grid-cols-4 gap-6 auto-rows-fr">
