@@ -33,12 +33,11 @@ export default function AgeGroupComparisonChart({
 }: AgeGroupComparisonChartProps) {
   const sessionId = useSessionStore((state) => state.sessionId)
 
-  // 1. API URL을 useMemo로 안전하게 생성
   const fetchUrl = useMemo(() => {
     if (!sessionId || !filters.dateRange.start) {
       return null;
     }
-    return `http://localhost:8080/api/charts/income-expense/preference?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}`;
+    return `http://localhost:8080/api/analysis/income-expense/by-preference?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}`;
   }, [sessionId, filters?.dateRange?.start, filters?.dateRange?.end]);
 
   const transformData = useCallback((result: any) => {
@@ -49,7 +48,6 @@ export default function AgeGroupComparisonChart({
     }));
   }, []);
 
-  // 2. 커스텀 훅을 호출하여 데이터, 로딩, 에러 상태를 한번에 받아옴
   const { 
     data, 
     isLoading: isFetching,

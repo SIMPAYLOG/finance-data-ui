@@ -41,7 +41,7 @@ export default function TopCategoriesChart({
     if (!sessionId || !filters.dateRange.start) {
       return null
     }
-    return `http://localhost:8080/api/charts/top-volume-category-counts?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}`
+    return `http://localhost:8080/api/analysis/category/by-volume-top5?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}`
   }, [sessionId, filters?.dateRange?.start, filters?.dateRange?.end])
 
   const transformData = useCallback((result: any): ChartData[] => {

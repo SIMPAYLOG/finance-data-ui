@@ -38,7 +38,7 @@ export default function AgeGroupComparisonChart({
     if (!sessionId || !filters.dateRange.start) {
       return null;
     }
-    return `http://localhost:8080/api/charts/income-expense/by-age-group?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}`;
+    return `http://localhost:8080/api/analysis/income-expense/by-age-group?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}`;
   }, [sessionId, filters?.dateRange?.start, filters?.dateRange?.end]);
 
   const transformData = useCallback((result: any) => {

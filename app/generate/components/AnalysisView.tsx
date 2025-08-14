@@ -34,7 +34,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({
   const lastSampleElementRef = useCallback((node: HTMLTableRowElement | null) => {
       if (isFetchingSamples) return;
       if (observer.current) observer.current.disconnect();
-      const options = { root: scrollContainerRef.current, threshold: 1.0 };
+      const options = { root: scrollContainerRef.current, threshold: 0.9 };
       observer.current = new IntersectionObserver(entries => {
         if (entries[0].isIntersecting && hasMore) {
           fetchUserSamples(page);
