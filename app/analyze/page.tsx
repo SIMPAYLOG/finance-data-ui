@@ -16,14 +16,12 @@ export default function Page() {
     <div className="flex flex-col min-h-screen">
       <Header />
       <div className="flex flex-1 overflow-hidden">
-        <FilterProvider>
           <SidebarProvider>
             <AppSidebar activeView={activeView} setActiveView={setActiveView} />
               <div className="flex-1 overflow-auto">
                 <DashboardLayout activeView={activeView} />
               </div>
           </SidebarProvider>
-        </FilterProvider>
       </div>
     </div>
   )

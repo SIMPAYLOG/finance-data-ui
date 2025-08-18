@@ -30,7 +30,6 @@ export function DashboardLayout({ activeView }: DashboardLayoutProps) {
   return (
     <div className="flex h-screen">
       <div className="flex-1 overflow-auto">{renderContent()}</div>
-      <FilterPanel />
     </div>
   )
 }
