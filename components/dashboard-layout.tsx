@@ -4,22 +4,22 @@ import { MainDashboard } from "@/components/main-dashboard"
 import { AdvancedAnalytics } from "@/components/advanced-analytics"
 import { UserComparison } from "@/components/user-comparison"
 import { DashboardSettings } from "@/components/dashboard-settings"
-import { FilterPanel } from "@/components/filter-panel"
 import type { ActiveView } from "@/app/analyze/page"
 
 interface DashboardLayoutProps {
   activeView: ActiveView
+  filters: any
 }
 
-export function DashboardLayout({ activeView }: DashboardLayoutProps) {
+export function DashboardLayout({ activeView, filters }: DashboardLayoutProps) {
   const renderContent = () => {
     switch (activeView) {
       case "dashboard":
         return <MainDashboard />
-      case "analytics":
-        return <AdvancedAnalytics />
       case "user-comparison":
         return <UserComparison />
+      case "analytics":
+        return <AdvancedAnalytics />
       case "settings":
         return <DashboardSettings />
       default:

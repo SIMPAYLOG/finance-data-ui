@@ -26,24 +26,24 @@ const menuItems = [
     key: "dashboard" as ActiveView,
     description: "전체 개요 및 핵심 지표",
   },
-  {
-    title: "고급 분석",
-    icon: TrendingUp,
-    key: "analytics" as ActiveView,
-    description: "상세 분석 및 트렌드",
-  },
+  // {
+  //   title: "고급 분석",
+  //   icon: TrendingUp,
+  //   key: "analytics" as ActiveView,
+  //   description: "상세 분석 및 트렌드",
+  // },
   {
     title: "사용자 비교",
     icon: Users,
     key: "user-comparison" as ActiveView,
     description: "개별 vs 집단 비교",
   },
-  {
-    title: "설정",
-    icon: Settings,
-    key: "settings" as ActiveView,
-    description: "대시보드 커스터마이징",
-  },
+  // {
+  //   title: "설정",
+  //   icon: Settings,
+  //   key: "settings" as ActiveView,
+  //   description: "대시보드 커스터마이징",
+  // },
 ]
 
 export function AppSidebar({ activeView, setActiveView }: AppSidebarProps) {

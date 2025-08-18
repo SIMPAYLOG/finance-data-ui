@@ -1,188 +1,278 @@
 "use client"
 
-import { useState } from "react"
-import { Filter, Calendar, Users, Briefcase, DollarSign, RotateCcw } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { useFilters } from "@/components/filter-provider"
-import { cn } from "@/lib/utils"
+import { Slider } from "@/components/ui/slider"
+import { X, Filter, ChevronDown, ChevronUp } from "lucide-react"
+import { useState } from "react"
 
-export function FilterPanel() {
+interface FilterPanelProps {
+  filters: any
+  onFiltersChange: (filters: any) => void
+}
+
+export default function FilterPanel({ filters, onFiltersChange }: FilterPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const { filters, updateFilters, resetFilters } = useFilters()
 
+  const categories = ["식비", "교통비", "쇼핑", "문화생활", "의료비", "교육비", "주거비", "통신비", "기타"]
   const spendingTypes = ["소비지향형", "저축지향형", "무계획형", "균형형"]
-  const ageGroups = ["20대", "30대", "40대", "50대+"]
-  const occupations = ["회사원", "자영업", "프리랜서", "학생", "공무원", "기타"]
+  const ageGroups = ["20대", "30대", "40대", "50대", "60대 이상"]
+  const occupations = ["IT 개발자", "금융업", "제조업", "서비스업", "공무원", "자영업", "학생", "기타"]
 
-  const getActiveFiltersCount = () => {
-    return (
-      filters.spendingTypes.length +
-      filters.ageGroups.length +
-      filters.occupations.length +
-      filters.incomeDeciles.length
-    )
+  const handleCategoryToggle = (category: string) => {
+    const newCategories = filters.categories.includes(category)
+      ? filters.categories.filter((c: string) => c !== category)
+      : [...filters.categories, category]
+
+    onFiltersChange({
+      ...filters,
+      categories: newCategories,
+    })
+  }
+
+  const handleAmountRangeChange = (values: number[]) => {
+    onFiltersChange({
+      ...filters,
+      amountRange: { min: values[0], max: values[1] },
+    })
+  }
+
+  const clearAllFilters = () => {
+    onFiltersChange({
+      dateRange: { start: "2024-01-01", end: "2024-12-31" },
+      categories: [],
+      subcategories: [],
+      transactionType: "all",
+      spendingType: "all",
+      ageGroup: "all",
+      occupation: "all",
+      incomeDecile: "all",
+      amountRange: { min: 0, max: 10000000 },
+    })
   }
 
   return (
-    <div className={cn("transition-all duration-300 border-l bg-background", isExpanded ? "w-80" : "w-12")}>
-      <div className="p-2">
-        <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="w-full justify-start">
-          <Filter className="h-4 w-4" />
-          {isExpanded && (
-            <>
-              <span className="ml-2">필터</span>
-              {getActiveFiltersCount() > 0 && (
-                <Badge variant="secondary" className="ml-auto">
-                  {getActiveFiltersCount()}
-                </Badge>
-              )}
-            </>
-          )}
-        </Button>
-      </div>
-
-      {isExpanded && (
-        <div className="p-4 space-y-4 overflow-auto h-full">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">필터 설정</h3>
-            <Button variant="outline" size="sm" onClick={resetFilters}>
-              <RotateCcw className="h-3 w-3" />
-            </Button>
+    <Card className="mx-6 mt-4">
+      <CardContent className="p-4">
+        {/* Basic Filters */}
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            <Label className="font-medium">필터</Label>
           </div>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                기간 설정
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-xs text-muted-foreground">
-                {filters.dateRange.from.toLocaleDateString()} ~ {filters.dateRange.to.toLocaleDateString()}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Date Range */}
+          <div className="flex items-center gap-2">
+            <Label className="text-sm">기간:</Label>
+            <Input
+              type="date"
+              value={filters.dateRange.start}
+              onChange={(e) =>
+                onFiltersChange({
+                  ...filters,
+                  dateRange: { ...filters.dateRange, start: e.target.value },
+                })
+              }
+              className="w-36"
+            />
+            <span className="text-sm text-muted-foreground">~</span>
+            <Input
+              type="date"
+              value={filters.dateRange.end}
+              onChange={(e) =>
+                onFiltersChange({
+                  ...filters,
+                  dateRange: { ...filters.dateRange, end: e.target.value },
+                })
+              }
+              className="w-36"
+            />
+          </div>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                소비 성향
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {spendingTypes.map((type) => (
-                <div key={type} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`spending-${type}`}
-                    checked={filters.spendingTypes.includes(type)}
-                    onCheckedChange={(checked) => {
-                      const newTypes = checked
-                        ? [...filters.spendingTypes, type]
-                        : filters.spendingTypes.filter((t) => t !== type)
-                      updateFilters({ spendingTypes: newTypes })
-                    }}
-                  />
-                  <Label htmlFor={`spending-${type}`} className="text-sm">
-                    {type}
-                  </Label>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          {/* Transaction Type */}
+          <div className="flex items-center gap-2">
+            <Label className="text-sm">거래 유형:</Label>
+            <Select
+              value={filters.transactionType}
+              onValueChange={(value) =>
+                onFiltersChange({
+                  ...filters,
+                  transactionType: value,
+                })
+              }
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체</SelectItem>
+                <SelectItem value="DEPOSIT">수입</SelectItem>
+                <SelectItem value="WITHDRAW">지출</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                연령대
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {ageGroups.map((age) => (
-                <div key={age} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`age-${age}`}
-                    checked={filters.ageGroups.includes(age)}
-                    onCheckedChange={(checked) => {
-                      const newAges = checked ? [...filters.ageGroups, age] : filters.ageGroups.filter((a) => a !== age)
-                      updateFilters({ ageGroups: newAges })
-                    }}
-                  />
-                  <Label htmlFor={`age-${age}`} className="text-sm">
-                    {age}
-                  </Label>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-2"
+          >
+            고급 필터
+            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Briefcase className="h-4 w-4" />
-                직업군
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {occupations.map((occupation) => (
-                <div key={occupation} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`occupation-${occupation}`}
-                    checked={filters.occupations.includes(occupation)}
-                    onCheckedChange={(checked) => {
-                      const newOccupations = checked
-                        ? [...filters.occupations, occupation]
-                        : filters.occupations.filter((o) => o !== occupation)
-                      updateFilters({ occupations: newOccupations })
-                    }}
-                  />
-                  <Label htmlFor={`occupation-${occupation}`} className="text-sm">
-                    {occupation}
-                  </Label>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                소득 분위
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[
-                { label: "1-3분위", value: [1, 2, 3] },
-                { label: "4-6분위", value: [4, 5, 6] },
-                { label: "7-10분위", value: [7, 8, 9, 10] },
-              ].map((group) => (
-                <div key={group.label} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`income-${group.label}`}
-                    checked={group.value.some((v) => filters.incomeDeciles.includes(v))}
-                    onCheckedChange={(checked) => {
-                      const newDeciles = checked
-                        ? [...new Set([...filters.incomeDeciles, ...group.value])]
-                        : filters.incomeDeciles.filter((d) => !group.value.includes(d))
-                      updateFilters({ incomeDeciles: newDeciles })
-                    }}
-                  />
-                  <Label htmlFor={`income-${group.label}`} className="text-sm">
-                    {group.label}
-                  </Label>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <Button variant="outline" size="sm" onClick={clearAllFilters}>
+            필터 초기화
+          </Button>
         </div>
-      )}
-    </div>
+
+        {/* Advanced Filters */}
+        {isExpanded && (
+          <div className="mt-6 space-y-6 border-t pt-6">
+            {/* Categories */}
+            <div>
+              <Label className="text-sm mb-2 block">카테고리:</Label>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((category) => (
+                  <Badge
+                    key={category}
+                    variant={filters.categories.includes(category) ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => handleCategoryToggle(category)}
+                  >
+                    {category}
+                    {filters.categories.includes(category) && <X className="h-3 w-3 ml-1" />}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Amount Range */}
+            <div>
+              <Label className="text-sm mb-2 block">
+                거래 금액 범위: {(filters.amountRange.min / 10000).toLocaleString()}만원 ~{" "}
+                {(filters.amountRange.max / 10000).toLocaleString()}만원
+              </Label>
+              <Slider
+                value={[filters.amountRange.min, filters.amountRange.max]}
+                onValueChange={handleAmountRangeChange}
+                max={10000000}
+                min={0}
+                step={100000}
+                className="w-full"
+              />
+            </div>
+
+            {/* Collective Analysis Filters */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <Label className="text-sm mb-2 block">소비 성향:</Label>
+                  <Select
+                    value={filters.spendingType}
+                    onValueChange={(value) =>
+                      onFiltersChange({
+                        ...filters,
+                        spendingType: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      {spendingTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm mb-2 block">연령대:</Label>
+                  <Select
+                    value={filters.ageGroup}
+                    onValueChange={(value) =>
+                      onFiltersChange({
+                        ...filters,
+                        ageGroup: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      {ageGroups.map((age) => (
+                        <SelectItem key={age} value={age}>
+                          {age}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm mb-2 block">직업군:</Label>
+                  <Select
+                    value={filters.occupation}
+                    onValueChange={(value) =>
+                      onFiltersChange({
+                        ...filters,
+                        occupation: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      {occupations.map((job) => (
+                        <SelectItem key={job} value={job}>
+                          {job}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm mb-2 block">소득 분위:</Label>
+                  <Select
+                    value={filters.incomeDecile}
+                    onValueChange={(value) =>
+                      onFiltersChange({
+                        ...filters,
+                        incomeDecile: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map((decile) => (
+                        <SelectItem key={decile} value={decile.toString()}>
+                          {decile}분위
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
