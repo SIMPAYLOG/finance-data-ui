@@ -17,7 +17,7 @@ export function DashboardLayout({ activeView, filters }: DashboardLayoutProps) {
       case "dashboard":
         return <MainDashboard />
       case "user-comparison":
-        return <UserComparison />
+        return <UserComparison filters={filters} /> 
       case "analytics":
         return <AdvancedAnalytics />
       case "settings":
