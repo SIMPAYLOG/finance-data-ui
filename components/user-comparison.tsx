@@ -157,7 +157,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
               onClick={() => setIsOpen((prev) => !prev)}
             >
               {selectedUser
-                ? `${selectedUser.name} (${selectedUser.userId})`
+                ? `${selectedUser.name}`
                 : "사용자 선택"}
             </button>
 
@@ -262,10 +262,10 @@ export function UserComparison({ filters }: UserComparisonProps) {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <ChartCard
           title="👥 카테고리별 지출 비교"
-          description="선택된 사용자와 유사 집단의 카테고리별 지출을 비교합니다"
+          description="선택된 사용자와 전체 집단의 카테고리별 지출을 비교합니다"
           chartType="groupedBar"
         >
-          <GroupComparisonChart />
+          <GroupComparisonChart filters={filters} userId={selectedUser?.userId} />
         </ChartCard>
 
         <ChartCard
