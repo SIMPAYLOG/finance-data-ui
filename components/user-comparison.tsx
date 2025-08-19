@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { ChartCard } from "@/components/chart-card"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { GroupComparisonChart } from "@/components/charts/group-comparison-chart"
+import { PeriodAmountChart } from "@/components/charts/monthly-group-comparison-chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -131,6 +132,8 @@ export function UserComparison({ filters }: UserComparisonProps) {
     return summary.data.find((d) => d.transactionType === t)?.amount ?? 0
   }
 
+  const isDeposit = filters.transactionType === "DEPOSIT";
+
   return (
     <div className="p-6 space-y-6 h-full overflow-auto">
       <DashboardHeader
@@ -200,7 +203,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>
-              {filters.transactionType === "DEPOSIT" ? "평균 대비 총 수입" : "평균 대비 총 지출"}
+              {isDeposit ? "평균 대비 총 수입" : "평균 대비 총 지출"}
             </CardDescription>
             <CardTitle className="text-2xl">
               {(() => {
@@ -213,23 +216,50 @@ export function UserComparison({ filters }: UserComparisonProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Badge variant="secondary" className="text-orange-600 bg-orange-50">
-              {(() => {
-                const type = filters.transactionType
-                const overall = getTransactionAmount(overallSummary, type)
-                const selected = getTransactionAmount(selectedSummary, type)
-                const diff = selected - overall
-                return `전체 대비 ${diff}원`
-              })()}
-            </Badge>
+            {(() => {
+              const type = filters.transactionType
+              const overall = getTransactionAmount(overallSummary, type)
+              const selected = getTransactionAmount(selectedSummary, type)
+              const diff = selected - overall
+              const isHigher = diff > 0
+
+              // 수입 / 지출 조건에 따른 색상 및 텍스트 설정
+              let badgeClass = ""
+              let label = ""
+
+              if (type === "DEPOSIT") {
+                if (isHigher) {
+                  badgeClass = "text-orange-600 bg-orange-50"
+                  label = `수입이 전체 대비 ${diff.toLocaleString()}원 높음`
+                } else {
+                  badgeClass = "text-blue-600 bg-blue-50"
+                  label = `수입이 전체 대비 ${Math.abs(diff).toLocaleString()}원 낮음`
+                }
+              } else if (type === "WITHDRAW") {
+                if (isHigher) {
+                  badgeClass = "text-blue-600 bg-blue-50"
+                  label = `지출이 전체 대비 ${diff.toLocaleString()}원 높음`
+                } else {
+                  badgeClass = "text-orange-600 bg-orange-50"
+                  label = `지출이 전체 대비 ${Math.abs(diff).toLocaleString()}원 낮음`
+                }
+              }
+
+              return (
+                <Badge variant="secondary" className={badgeClass}>
+                  {label}
+                </Badge>
+              )
+            })()}
           </CardContent>
+
         </Card>
 
         {/* 집단 평균 */}
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>
-              {filters.transactionType === "DEPOSIT" ? "집단 평균 수입" : "집단 평균 지출"}
+              {isDeposit ? "집단 평균 수입" : "집단 평균 지출"}
             </CardDescription>
             <CardTitle className="text-2xl">
               {getTransactionAmount(overallSummary, filters.transactionType)?.toLocaleString()}원
@@ -241,7 +271,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>
-              {filters.transactionType === "DEPOSIT" ? "나의 평균 수입" : "나의 평균 지출"}
+              {isDeposit ? "나의 평균 수입" : "나의 평균 지출"}
             </CardDescription>
             <CardTitle className="text-2xl">
               {getTransactionAmount(selectedSummary, filters.transactionType)?.toLocaleString()}원
@@ -261,21 +291,19 @@ export function UserComparison({ filters }: UserComparisonProps) {
       {/* 상세 비교 차트 */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <ChartCard
-          title="👥 카테고리별 지출 비교"
-          description="선택된 사용자와 전체 집단의 카테고리별 지출을 비교합니다"
-          chartType="groupedBar"
+          title={isDeposit ? "👥 카테고리별 수입 비교" : "👥 카테고리별 지출 비교"}
+          description={isDeposit ? "선택된 사용자와 전체 집단의 카테고리별 수입을 비교합니다" : "선택된 사용자와 전체 집단의 카테고리별 지출을 비교합니다"}
+          // chartType="groupedBar"
         >
           <GroupComparisonChart filters={filters} userId={selectedUser?.userId} />
         </ChartCard>
 
         <ChartCard
-          title="📊 월별 지출 트렌드 비교"
-          description="최근 6개월간의 지출 트렌드를 집단과 비교합니다"
-          chartType="line"
+          title={isDeposit ? "📊 월별 수입 금액 비교" : "📊 월별 지출 금액 비교"}
+          description={isDeposit ? "6개월 이내 수입 금액을 전체 집단과 비교합니다" : "6개월 이내 지출 금액을 전체 집단과 비교합니다"}
+          // chartType="groupedBar"
         >
-          <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-            월별 트렌드 비교 차트 (구현 예정)
-          </div>
+          <PeriodAmountChart filters={filters} userId={selectedUser?.userId} />
         </ChartCard>
       </div>
 
