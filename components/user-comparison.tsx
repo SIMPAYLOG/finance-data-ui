@@ -5,6 +5,7 @@ import { ChartCard } from "@/components/chart-card"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { GroupComparisonChart } from "@/components/charts/group-comparison-chart"
 import { PeriodAmountChart } from "@/components/charts/monthly-group-comparison-chart"
+import { IncomeCompareChart } from "./charts/income-compare-chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useSessionStore } from "@/store/useSessionStore"
@@ -62,6 +63,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   clothingFootwear: "의류 및 신발",
   health: "보건",
   householdGoodsServices: "가정용품 및 서비스",
+  housingUtilitiesFuel: "주거 · 수도 · 광열",
   education: "교육",
 }
 
@@ -92,6 +94,15 @@ export function UserComparison({ filters }: UserComparisonProps) {
   const transactionType: "WITHDRAW" | "DEPOSIT" | "all" = filters?.transactionType ?? "all"
   const isDeposit = transactionType === "DEPOSIT"
 
+  // mounted flag to avoid setState on unmounted component
+  const isMountedRef = useRef(true)
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
   // --- 유틸 ---
   const fmtPct = (x: number, digits = 1) => `${x.toFixed(digits)}%`
   const pct = (num: number, den: number) => (den === 0 ? 0 : (num / den) * 100)
@@ -99,85 +110,193 @@ export function UserComparison({ filters }: UserComparisonProps) {
   // --- 전체 유저 로드 ---
   const loadUsers = async () => {
     if (!hasMore) return
-    const res = await fetch(
-      `http://localhost:8080/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
-    )
-    const data = await res.json()
-    setUsers((prev) => {
-      const updatedUsers = [...prev, ...data.result.content]
-      if (page === 0 && updatedUsers.length > 0 && !selectedUser) {
-        handleSelectUser(updatedUsers[0])
+    try {
+      const res = await fetch(
+        `http://localhost:8080/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
+      )
+      if (!res.ok) {
+        console.error("loadUsers: response not ok", res.status)
+        // 실패 시 더 이상 로드하지 않도록 설정
+        if (isMountedRef.current) {
+          setHasMore(false)
+        }
+        return
       }
-      return updatedUsers
-    })
-    setHasMore(!data.result.last)
-    setPage((prev) => prev + 1)
+      const data = await res.json()
+      const content: User[] = data?.result?.content ?? []
+      if (isMountedRef.current) {
+        setUsers((prev) => {
+          const updatedUsers = [...prev, ...content]
+          if (page === 0 && updatedUsers.length > 0 && !selectedUser) {
+            // 최초 로드 시 자동 선택 (안전하게)
+            handleSelectUser(updatedUsers[0])
+          }
+          return updatedUsers
+        })
+        setHasMore(Boolean(!data?.result?.last ? true : !data.result.last))
+        setPage((prev) => prev + 1)
+      }
+    } catch (err) {
+      console.error("loadUsers error:", err)
+      if (isMountedRef.current) {
+        setHasMore(false)
+      }
+    }
   }
 
   useEffect(() => {
+    // 페이지/유저 리스트 초기화 (sessionId가 바뀌면 새로 시작)
+    setUsers([])
+    setPage(0)
+    setHasMore(true)
     loadUsers()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId])
 
   // --- Summary 로드 (집단/개인) ---
   useEffect(() => {
     if (!start || !end) return
-    fetch(
-      `http://localhost:8080/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
-    )
-      .then((res) => res.json())
-      .then((data) => setOverallSummary(data.result))
+
+    const fetchOverallSummary = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
+        )
+        if (!res.ok) {
+          console.error("fetchOverallSummary failed:", res.status)
+          if (isMountedRef.current) setOverallSummary(null)
+          return
+        }
+        const data = await res.json()
+        if (isMountedRef.current) setOverallSummary(data?.result ?? null)
+      } catch (err) {
+        console.error("fetchOverallSummary error:", err)
+        if (isMountedRef.current) setOverallSummary(null)
+      }
+    }
+
+    fetchOverallSummary()
   }, [sessionId, start, end])
 
   useEffect(() => {
     if (!selectedUser || !start || !end) return
-    fetch(
-      `http://localhost:8080/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
-    )
-      .then((res) => res.json())
-      .then((data) => setSelectedSummary(data.result))
+
+    const fetchSelectedSummary = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
+        )
+        if (!res.ok) {
+          console.error("fetchSelectedSummary failed:", res.status)
+          if (isMountedRef.current) setSelectedSummary(null)
+          return
+        }
+        const data = await res.json()
+        if (isMountedRef.current) setSelectedSummary(data?.result ?? null)
+      } catch (err) {
+        console.error("fetchSelectedSummary error:", err)
+        if (isMountedRef.current) setSelectedSummary(null)
+      }
+    }
+
+    fetchSelectedSummary()
   }, [selectedUser, sessionId, start, end])
 
   // --- 카테고리 데이터 로드 (집단/개인) ---
   useEffect(() => {
     if (!start || !end) return
-    fetch(
-      `http://localhost:8080/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
-    )
-      .then((res) => res.json())
-      .then((data: CategoryApiResponse) => setGroupCategoryData(data.result.data))
-      .catch((err) => console.error("그룹 카테고리 로드 실패:", err))
+
+    const fetchGroupCategory = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
+        )
+        if (!res.ok) {
+          console.error("fetchGroupCategory failed:", res.status)
+          if (isMountedRef.current) setGroupCategoryData([])
+          return
+        }
+        const data: CategoryApiResponse = await res.json()
+        if (isMountedRef.current) setGroupCategoryData(data?.result?.data ?? [])
+      } catch (err) {
+        console.error("그룹 카테고리 로드 실패:", err)
+        if (isMountedRef.current) setGroupCategoryData([])
+      }
+    }
+
+    fetchGroupCategory()
   }, [sessionId, start, end])
 
   useEffect(() => {
     if (!start || !end || !selectedUser) return
-    fetch(
-      `http://localhost:8080/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
-    )
-      .then((res) => res.json())
-      .then((data: CategoryApiResponse) => setUserCategoryData(data.result.data))
-      .catch((err) => console.error("개인 카테고리 로드 실패:", err))
+
+    const fetchUserCategory = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
+        )
+        if (!res.ok) {
+          console.error("fetchUserCategory failed:", res.status)
+          if (isMountedRef.current) setUserCategoryData([])
+          return
+        }
+        const data: CategoryApiResponse = await res.json()
+        if (isMountedRef.current) setUserCategoryData(data?.result?.data ?? [])
+      } catch (err) {
+        console.error("개인 카테고리 로드 실패:", err)
+        if (isMountedRef.current) setUserCategoryData([])
+      }
+    }
+
+    fetchUserCategory()
   }, [sessionId, start, end, selectedUser])
 
   // --- 월별 데이터 로드 (집단/개인) ---
   useEffect(() => {
     if (!start || !end) return
-    fetch(
-      `http://localhost:8080/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month`
-    )
-      .then((res) => res.json())
-      .then((data: PeriodApiResponse) => setGroupPeriodData(data.result.data))
-      .catch((err) => console.error("그룹 월별 로드 실패:", err))
+
+    const fetchGroupPeriod = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month`
+        )
+        if (!res.ok) {
+          console.error("fetchGroupPeriod failed:", res.status)
+          if (isMountedRef.current) setGroupPeriodData([])
+          return
+        }
+        const data: PeriodApiResponse = await res.json()
+        if (isMountedRef.current) setGroupPeriodData(data?.result?.data ?? [])
+      } catch (err) {
+        console.error("그룹 월별 로드 실패:", err)
+        if (isMountedRef.current) setGroupPeriodData([])
+      }
+    }
+
+    fetchGroupPeriod()
   }, [sessionId, start, end])
 
   useEffect(() => {
     if (!start || !end || !selectedUser) return
-    fetch(
-      `http://localhost:8080/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month&userId=${selectedUser.userId}`
-    )
-      .then((res) => res.json())
-      .then((data: PeriodApiResponse) => setUserPeriodData(data.result.data))
-      .catch((err) => console.error("개인 월별 로드 실패:", err))
+
+    const fetchUserPeriod = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month&userId=${selectedUser.userId}`
+        )
+        if (!res.ok) {
+          console.error("fetchUserPeriod failed:", res.status)
+          if (isMountedRef.current) setUserPeriodData([])
+          return
+        }
+        const data: PeriodApiResponse = await res.json()
+        if (isMountedRef.current) setUserPeriodData(data?.result?.data ?? [])
+      } catch (err) {
+        console.error("개인 월별 로드 실패:", err)
+        if (isMountedRef.current) setUserPeriodData([])
+      }
+    }
+
+    fetchUserPeriod()
   }, [sessionId, start, end, selectedUser])
 
   // --- 무한 스크롤 ---
@@ -194,10 +313,15 @@ export function UserComparison({ filters }: UserComparisonProps) {
     setSelectedUser(user)
     setIsOpen(false)
     // NOTE: 외부 필터 객체에 값 반영 (기존 동작 유지)
-    filters.age = user.age
-    filters.gender = user.gender === "M" ? "남자" : "여자"
-    filters.occupationName = user.occupationName
-    filters.preference = user.preferenceId
+    try {
+      filters.age = user.age
+      filters.gender = user.gender === "M" ? "남자" : "여자"
+      filters.occupationName = user.occupationName
+      filters.preference = user.preferenceId
+    } catch (err) {
+      // filters가 읽기전용 등 예외 상황 방어
+      console.warn("handleSelectUser: filters 반영 실패", err)
+    }
   }
 
   // --- 드롭다운 외부 클릭 시 닫기 ---
@@ -507,13 +631,20 @@ export function UserComparison({ filters }: UserComparisonProps) {
       {/* 상세 비교 차트 (데이터 상위에서 내려줌) */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <ChartCard
-          title={isDeposit ? "👥 카테고리별 수입 비교" : "👥 카테고리별 지출 비교"}
-          description={isDeposit ? "선택된 사용자와 전체 집단의 카테고리별 수입을 비교합니다" : "선택된 사용자와 전체 집단의 카테고리별 지출을 비교합니다"}
+          title={isDeposit ? "👥 개인/전체 총 수입 비교" : "👥 카테고리별 지출 비교"}
+          description={isDeposit ? "선택된 사용자와 전체 집단의 기간 내 총 수입을 비교합니다" : "선택된 사용자와 전체 집단의 카테고리별 지출을 비교합니다"}
         >
-          <GroupComparisonChart
-            data={mergedCategory}
-            transactionType={transactionType}
-          />
+          {isDeposit ? (
+            <IncomeCompareChart
+              overallSummary={overallSummary}
+              selectedSummary={selectedSummary}
+            />
+          ) : (
+            <GroupComparisonChart
+              data={mergedCategory}
+              transactionType={transactionType}
+            />
+          )}
         </ChartCard>
 
         <ChartCard

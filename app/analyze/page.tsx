@@ -31,7 +31,7 @@ export default function Page() {
     dateRange: { start: durationStart, end: durationEnd },
     categories: [],
     subcategories: [],
-    transactionType: "all",
+    transactionType: "DEPOSIT",
     spendingType: "all",
     ageGroup: "all",
     occupation: "all",
