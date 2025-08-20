@@ -15,7 +15,7 @@ export function DashboardLayout({ activeView, filters }: DashboardLayoutProps) {
   const renderContent = () => {
     switch (activeView) {
       case "dashboard":
-        return <MainDashboard />
+        return <MainDashboard filters={filters} />
       case "user-comparison":
         return <UserComparison filters={filters} /> 
       case "analytics":
@@ -23,7 +23,7 @@ export function DashboardLayout({ activeView, filters }: DashboardLayoutProps) {
       case "settings":
         return <DashboardSettings />
       default:
-        return <MainDashboard />
+        return <MainDashboard filters={filters} />
     }
   }
 
