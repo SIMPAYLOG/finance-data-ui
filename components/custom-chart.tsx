@@ -6,7 +6,6 @@ import { useChartData } from "@/app/analyze/hooks/useChartData" // useChartData 
 import { ChartCard } from "@/components/chart-card"
 import { DynamicChart } from "@/components/dynamic-chart"
 
-// 1. Props에 filters를 추가하여 날짜 범위를 받을 수 있게 합니다.
 interface CustomizableChartCardProps {
   filters: {
     dateRange: {
@@ -32,26 +31,28 @@ interface CustomizableChartCardProps {
       end: string;
     }
   }
+  mappingUrl: string
 }
 
-export function IncomeByCategory({
+export function CustomChart({
   title,
   description,
   initialConfig = {
     type: "pie",
-    xAxis: "month",
-    yAxis: "amount",
+    xAxis: "category",
+    yAxis: "income",
     aggregation: "sum",
     colors: ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"],
   },
-  filters
+  filters,
+  mappingUrl,
 }: CustomizableChartCardProps) {
   const [chartConfig, setChartConfig] = useState(initialConfig)
 
   const sessionId = useSessionStore((state) => state.sessionId)
   
   // 2. API 요청 정보 설정
-  const endpoint = "/api/analysis/all-category-info"
+  const endpoint = mappingUrl
   const params = useMemo(() => {
     if (!sessionId || !filters.dateRange.start) {
       return undefined
@@ -63,13 +64,11 @@ export function IncomeByCategory({
     }
   }, [sessionId, filters.dateRange.start, filters.dateRange.end])
 
-  // 3. useChartData로 데이터 가져오기
   const { data, isLoading, error } = useChartData<CategoryData>({
     endpoint: params ? endpoint : null,
     params,
-    // API 응답의 result.data 배열을 그대로 반환하는 것이 핵심입니다.
     transformData: useCallback((result: any) => {
-      return result?.data || []
+      return result || []
     }, []),
      refreshKey: 0,
   })

@@ -40,10 +40,10 @@ export default function AgeGroupComparisonChart({
 
     const transformData = useCallback((result: any) => {
         if (!result) return [];
-        return result.data.map((item: any) => ({
-        month: item.name,           // name -> month
-        income: item.totalIncome,   // totalIncome -> income
-        expense: item.totalExpense, // totalExpense -> expense
+        return result.map((item: any) => ({
+        month: item.name,
+        income: item.income,
+        expense: item.expense,
       }));
     }, []);
 
