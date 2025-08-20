@@ -7,6 +7,7 @@ import { GroupComparisonChart } from "@/components/charts/group-comparison-chart
 import { KPICards } from "@/components/kpi-cards"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { CustomizableChartCard } from "@/components/customizable-chart-card"
+import IncomeExpensesCharByPreference from "@/components/charts/income-expenses-preference"
 
 const sampleData = [
   {
@@ -142,11 +143,11 @@ export function MainDashboard({ filters }: MainDashboardProps) {
 
         <div className="min-w-0">
           <ChartCard
-            title="👥 집단 사용자 평균 비교"
-            description="동일 조건 그룹과의 소비 패턴을 비교합니다"
+            title="👥 소비집단 평균 비교"
+            description="소비집단 간의 소비 패턴을 비교합니다"
             chartType="groupedBar"
           >
-            <GroupComparisonChart />
+            <IncomeExpensesCharByPreference isLoading={isLoading} filters={filters}/>
           </ChartCard>
         </div>
       </div>
