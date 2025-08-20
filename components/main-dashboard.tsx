@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react";
 import { ChartCard } from "@/components/chart-card"
 import { TopCategoriesChart } from "@/components/charts/top-categories-chart"
 import { GroupComparisonChart } from "@/components/charts/group-comparison-chart"
@@ -63,8 +64,13 @@ const sampleData = [
     ageGroup: "30대",
   },
 ]
+interface MainDashboardProps {
+  filters: any;
+}
 
-export function MainDashboard() {
+export function MainDashboard({ filters }: MainDashboardProps) {
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(false)
   return (
     <div className="p-6 space-y-6 h-full overflow-auto">
       <DashboardHeader
@@ -72,7 +78,7 @@ export function MainDashboard() {
         description="개인 및 집단 사용자의 금융 데이터를 종합적으로 분석합니다"
       />
 
-      <KPICards />
+      <KPICards filters={filters} refreshKey={refreshKey} />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="min-w-0">
