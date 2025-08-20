@@ -15,7 +15,7 @@ export function DashboardHeader({ title, description }: DashboardHeaderProps) {
         <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
         {description && <p className="text-muted-foreground">{description}</p>}
       </div>
-      <div className="flex items-center space-x-2">
+      {/* <div className="flex items-center space-x-2">
         <Button variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" />
           새로고침
@@ -28,7 +28,7 @@ export function DashboardHeader({ title, description }: DashboardHeaderProps) {
           <Share className="h-4 w-4 mr-2" />
           공유
         </Button>
-      </div>
+      </div> */}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { DashboardLayout } from "@/components/dashboard-layout"
@@ -39,6 +39,15 @@ export default function Page() {
     amountRange: { min: 0, max: 10000000 },
   })
 
+  useEffect(() => {
+    if (activeView === 'user-comparison') {
+      setFilters(currentFilters => ({
+        ...currentFilters,
+        transactionType: 'DEPOSIT',
+      }));
+    }
+  }, [activeView]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -46,7 +55,7 @@ export default function Page() {
           <SidebarProvider>
             <AppSidebar activeView={activeView} setActiveView={setActiveView} />
               <div className="flex-1 overflow-auto">
-                <FilterPanel filters={filters} onFiltersChange={setFilters}/>
+                <FilterPanel filters={filters} onFiltersChange={setFilters} hideTransactionFilter={activeView === 'dashboard'}/>
                 <DashboardLayout activeView={activeView} filters={filters}/>
               </div>
           </SidebarProvider>

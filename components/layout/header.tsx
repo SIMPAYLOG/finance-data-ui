@@ -4,8 +4,8 @@ import { BarChart3 } from "lucide-react";
 const navLinks = [
   { href: "/", label: "홈" },
   { href: "/generate", label: "데이터 생성" },
-  { href: "/analyze", label: "데이터 분석" },
-  { href: "/settings", label: "설정" },
+  // { href: "/analyze", label: "데이터 분석" },
+  // { href: "/settings", label: "설정" },
 ];
 
 export const Header = () => {
