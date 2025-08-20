@@ -9,6 +9,7 @@ import { DashboardHeader } from "@/components/dashboard-header"
 import { CustomizableChartCard } from "@/components/customizable-chart-card"
 import IncomeExpensesCharByPreference from "@/components/charts/income-expenses-preference"
 import IncomeExpensesCharByMonth from "@/components/charts/income-expenses-by-month"
+import {IncomeByCategory} from "@/components/income-by-category"
 
 const sampleData = [
   {
@@ -94,19 +95,20 @@ export function MainDashboard({ filters }: MainDashboardProps) {
         </div>
 
         <div className="min-w-0">
-          <CustomizableChartCard
+          <IncomeByCategory
             title="🧁 카테고리별 지출 비중"
             description="주요 지출 카테고리별 비중을 보여줍니다"
             initialConfig={{
               type: "pie",
-              xAxis: "category",
-              yAxis: "amount",
+              xAxis: "name",
+              yAxis: "totalIncome",
               aggregation: "sum",
               colors: ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"],
             }}
-            data={sampleData}
+            filters={filters}
           />
         </div>
+        
       </div>
 
       <div className="min-w-0">
