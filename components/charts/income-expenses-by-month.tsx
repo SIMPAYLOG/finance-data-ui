@@ -10,6 +10,8 @@ import { useChartData } from "@/app/analyze/hooks/useChartData"
 interface AgeGroupComparisonChartProps {
   filters: any
   isLoading: boolean
+  refreshKey: number
+  userId?: string
 }
 
 interface AgeGroupData {
@@ -20,7 +22,9 @@ interface AgeGroupData {
 
 export default function AgeGroupComparisonChart({
   filters,
-  isLoading
+  isLoading,
+  refreshKey,
+  userId 
 }: AgeGroupComparisonChartProps) {
   const sessionId = useSessionStore((state) => state.sessionId)
 
@@ -30,13 +34,19 @@ export default function AgeGroupComparisonChart({
         if (!sessionId) {
             return undefined;
         }
-        return {
-            sessionId,
-            durationStart: filters.dateRange.start,
-            durationEnd: filters.dateRange.end,
-            intervalType: "monthly"
-        };
-    }, [sessionId, filters?.dateRange?.start, filters?.dateRange.end]);
+        const paramsObject: Record<string, string> = {
+      sessionId,
+      durationStart: filters.dateRange.start,
+      durationEnd: filters.dateRange.end,
+      intervalType: "monthly"
+    };
+
+    if (userId) {
+      paramsObject.userId = userId;
+    }
+
+    return paramsObject;
+  }, [sessionId, filters?.dateRange?.start, filters?.dateRange.end, userId]);
 
     const transformData = useCallback((result: any) => {
         if (!result) return [];
@@ -52,10 +62,10 @@ export default function AgeGroupComparisonChart({
         isLoading: isFetching,
         error 
     } = useChartData<AgeGroupData>({
-        endpoint: params ? endpoint : null, // params가 있을 때만 endpoint를 전달합니다.
+        endpoint: params ? endpoint : null,
         params,
         transformData,
-        refreshKey: 0, // 필요에 따라 refresh를 위한 상태값을 전달할 수 있습니다.
+        refreshKey: refreshKey,
     });
 
   const renderContent = () => {
@@ -102,10 +112,10 @@ export default function AgeGroupComparisonChart({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis
-              tickFormatter={(value: any) => {
-                const numericValue = parseFloat(value);
-                if (isNaN(numericValue)) return value;
-                return `${(numericValue / 10000)}만원`;
+              tickFormatter={(value) => {
+                if (value >= 1000000) return `₩${(value / 1000000).toFixed(0)}M`
+                if (value >= 1000) return `₩${(value / 1000).toFixed(0)}K`
+                return `₩${value}`
               }}
             />
             <ChartTooltip
@@ -120,8 +130,8 @@ export default function AgeGroupComparisonChart({
                       return value;
                     }
 
-                    const valueInManWon = Math.round(numericValue / 10000);
-                    return `${label}: ${valueInManWon.toLocaleString()}만원`;
+                    // const valueInManWon = Math.round(numericValue / 10000);
+                    return `${label}: ${numericValue.toLocaleString()}원`;
                   }}
                 />
               }

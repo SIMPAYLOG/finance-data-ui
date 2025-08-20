@@ -12,15 +12,20 @@ interface KPICardsProps {
     }
   };
   refreshKey: number;
+  userId?: number;
 }
 
-export function KPICards({ filters, refreshKey }: KPICardsProps) {
-  const { kpis, isLoading, error } = useKpiData({ filters, refreshKey });
+export function KPICards({ filters, refreshKey, userId }: KPICardsProps) {
+  const { kpis, isLoading, error } = useKpiData({ filters, refreshKey, userId });
 
+  const cardCount = userId ? 3 : 4;
+  const gridLayoutClasses = userId 
+    ? "md:grid-cols-3 xl:grid-cols-3"
+    : "md:grid-cols-2 xl:grid-cols-4";
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
+      <div className={`grid grid-cols-1 ${gridLayoutClasses} gap-4`}>
+        {[...Array(cardCount)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse"></div>
@@ -44,7 +49,7 @@ export function KPICards({ filters, refreshKey }: KPICardsProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className={`grid grid-cols-1 ${gridLayoutClasses} gap-4`}>
       {kpis.map((kpi, index) => (
         <Card key={index}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

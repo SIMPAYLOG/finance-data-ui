@@ -28,6 +28,16 @@ interface DynamicChartProps {
   data: any[]
 }
 
+const formatK = (value: number) => {
+    const numInK = value / 1000;
+
+    const formatter = new Intl.NumberFormat('ko-KR', {
+      maximumFractionDigits: 2, 
+    });
+
+    return `${formatter.format(numInK)}`;
+  };
+
 export function DynamicChart({ config, data }: DynamicChartProps) {
   const processedData = useMemo(() => {
     if (!data || data.length === 0) return []
@@ -44,7 +54,6 @@ export function DynamicChart({ config, data }: DynamicChartProps) {
       acc[key].values.push(item[config.yAxis])
       return acc
     }, {})
-
     // 집계 방식에 따른 계산
     return Object.values(grouped).map((group: any) => {
       let aggregatedValue
@@ -83,11 +92,10 @@ export function DynamicChart({ config, data }: DynamicChartProps) {
       color: config.colors?.[0] || "hsl(var(--chart-1))",
     },
   }
-
   const renderChart = () => {
     const commonMargin = { top: 20, right: 30, left: 20, bottom: 20 }
     const horizontalMargin = { top: 20, right: 30, left: 80, bottom: 20 }
-
+    
     switch (config.type) {
       case "bar":
         return (
@@ -114,7 +122,7 @@ export function DynamicChart({ config, data }: DynamicChartProps) {
           </BarChart>
         )
 
-      case "line":
+        case "line":
         return (
           <LineChart data={processedData} margin={commonMargin}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -125,12 +133,12 @@ export function DynamicChart({ config, data }: DynamicChartProps) {
               angle={-45}
               textAnchor="end"
               height={60}
-            />
+              />
             <YAxis
               tick={{ fontSize: 12 }}
               tickFormatter={(value) => {
                 if (value >= 1000000) return `₩${(value / 1000000).toFixed(1)}M`
-                if (value >= 1000) return `₩${(value / 1000).toFixed(0)}K`
+                if (value >= 1000) return `₩${formatK(value)}K`
                 return `₩${value}`
               }}
             />
@@ -144,7 +152,7 @@ export function DynamicChart({ config, data }: DynamicChartProps) {
             />
           </LineChart>
         )
-
+        
       case "horizontalBar":
         return (
           <BarChart data={processedData} layout="horizontal" margin={horizontalMargin}>
@@ -157,15 +165,15 @@ export function DynamicChart({ config, data }: DynamicChartProps) {
                 if (value >= 1000) return `₩${(value / 1000).toFixed(0)}K`
                 return `₩${value}`
               }}
-            />
+              />
             <YAxis type="category" dataKey={config.xAxis} tick={{ fontSize: 12 }} width={70} />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Bar dataKey={config.yAxis} fill={`var(--color-${config.yAxis})`} radius={[0, 4, 4, 0]} />
           </BarChart>
         )
 
-      case "pie":
-        return (
+        case "pie":
+          return (
           <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
             <Pie
               data={processedData}
@@ -173,8 +181,9 @@ export function DynamicChart({ config, data }: DynamicChartProps) {
               cy="50%"
               outerRadius="70%"
               dataKey={config.yAxis}
+              nameKey={config.xAxis}
               label={({ name, percent }) =>
-                processedData.length <= 6 ? `${name} ${(percent * 100).toFixed(0)}%` : `${(percent * 100).toFixed(0)}%`
+                processedData.length <= 6 ? `${name} ${((percent ?? 0) * 100).toFixed(0)}%`:`${((percent ?? 0) * 100).toFixed(0)}%`
               }
               labelLine={false}
             >

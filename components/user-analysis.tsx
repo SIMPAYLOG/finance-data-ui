@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ChartCard } from "@/components/chart-card"
 import TopCategoriesChart from "@/components/charts/top-categories-chart"
+import HeatmapChart from "@/components/charts/heatmap-chart"
 import { KPICards } from "@/components/kpi-cards"
 import { DashboardHeader } from "@/components/dashboard-header"
 import IncomeExpensesCharByPreference from "@/components/charts/income-expenses-preference"
@@ -100,11 +101,8 @@ const loadUsers = async () => {
   const handleSelectUser = (user: User) => {
     setSelectedUser(user)
     setIsOpen(false)
-    // NOTE: 외부 필터 객체에 값 반영 (기존 동작 유지)
-    filters.age = user.age
-    filters.gender = user.gender === "M" ? "남자" : "여자"
-    filters.occupationName = user.occupationName
-    filters.preference = user.preferenceId
+    
+    setRefreshKey(prevKey => prevKey + 1);
   }
 
   // --- 드롭다운 외부 클릭 시 닫기 ---
@@ -179,8 +177,9 @@ const loadUsers = async () => {
           )}
         </CardContent>
       </Card>
-
-      <KPICards filters={filters} refreshKey={refreshKey} />
+      {selectedUser ? (
+      <>  
+      <KPICards filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId} />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="min-w-0">
@@ -189,7 +188,7 @@ const loadUsers = async () => {
             description="설정된 기간의 수입과 지출을 비교합니다"
             chartType="groupedBar"
           >
-            <IncomeExpensesCharByMonth isLoading={isLoading} filters={filters}/>
+            <IncomeExpensesCharByMonth isLoading={isLoading} filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId.toString()}  />
           </ChartCard>
         </div>
 
@@ -204,8 +203,10 @@ const loadUsers = async () => {
               aggregation: "sum",
               colors: ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"],
               }}
+            refreshKey={refreshKey}
             filters={filters}
             mappingUrl="/api/analysis/all-category-info"
+            userId={selectedUser?.userId.toString()}
           />
         </div>
         
@@ -218,12 +219,14 @@ const loadUsers = async () => {
           initialConfig={{
             type: "line",
             xAxis: "hour",
-            yAxis: "avgSpentAmount",
+            yAxis: "totalSpentCount",
             aggregation: "avg",
             colors: ["hsl(var(--chart-3))"],
           }}
           filters={filters}
+          refreshKey={refreshKey} 
           mappingUrl="/api/analysis/amount-avg/by-hour"
+          userId={selectedUser?.userId.toString()}
         />
       </div>
 
@@ -233,20 +236,25 @@ const loadUsers = async () => {
             title="💡 상위 소비 카테고리 TOP 5"
             description="가장 많이 지출한 카테고리를 확인합니다"
           >
-            <TopCategoriesChart isLoading={isLoading} filters={filters}/>
+            <TopCategoriesChart isLoading={isLoading} filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId.toString()}/>
           </ChartCard>
         </div>
 
         <div className="min-w-0">
           <ChartCard
-            title="👥 소비집단 평균 비교"
-            description="소비집단 간의 소비 패턴을 비교합니다"
-            chartType="groupedBar"
+            title="🗓 요일-시간별 트랜잭션 밀도"
+            description="요일-시간별 소비 패턴을 비교합니다"
           >
-            <IncomeExpensesCharByPreference isLoading={isLoading} filters={filters}/>
+            <HeatmapChart isLoading={isLoading} filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId.toString()}/>
           </ChartCard>
         </div>
       </div>
+      </>
+    ) : (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )}
     </div>
   )
 }

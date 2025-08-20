@@ -32,37 +32,39 @@ interface CustomizableChartCardProps {
     }
   }
   mappingUrl: string
+  userId?: string
+  refreshKey: number
 }
 
 export function CustomChart({
   title,
   description,
-  initialConfig = {
-    type: "pie",
-    xAxis: "category",
-    yAxis: "income",
-    aggregation: "sum",
-    colors: ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"],
-  },
+  initialConfig,
   filters,
   mappingUrl,
+  userId,
+  refreshKey,
 }: CustomizableChartCardProps) {
   const [chartConfig, setChartConfig] = useState(initialConfig)
-
   const sessionId = useSessionStore((state) => state.sessionId)
   
-  // 2. API 요청 정보 설정
   const endpoint = mappingUrl
   const params = useMemo(() => {
     if (!sessionId || !filters.dateRange.start) {
       return undefined
     }
-    return {
+    const paramsObject: Record<string, string> = {
       sessionId,
       durationStart: filters.dateRange.start,
       durationEnd: filters.dateRange.end,
+    };
+
+    if (userId) {
+      paramsObject.userId = userId;
     }
-  }, [sessionId, filters.dateRange.start, filters.dateRange.end])
+
+    return paramsObject;
+  }, [sessionId, filters.dateRange.start, filters.dateRange.end, userId, mappingUrl])
 
   const { data, isLoading, error } = useChartData<CategoryData>({
     endpoint: params ? endpoint : null,
@@ -70,13 +72,13 @@ export function CustomChart({
     transformData: useCallback((result: any) => {
       return result || []
     }, []),
-     refreshKey: 0,
+     refreshKey: refreshKey,
   })
 
 
   return (
     <ChartCard title={title} description={description} chartType={chartConfig.type}>
-      <DynamicChart config={chartConfig} data={data} />
+      <DynamicChart config={chartConfig} data={Array.isArray(data) ? data : []} />
     </ChartCard>
   )
 }

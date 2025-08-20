@@ -9,6 +9,8 @@ import { ResponsiveContainer } from "recharts"
 interface TopCategoriesChartProps {
   filters: any
   isLoading: boolean
+  refreshKey: number
+  userId?: string 
 }
 
 interface ApiChartData {
@@ -25,7 +27,9 @@ interface ChartData {
 
 export default function TopCategoriesChart({
   filters,
-  isLoading
+  isLoading,
+  refreshKey,
+  userId
 }: TopCategoriesChartProps) {
   const sessionId = useSessionStore((state) => state.sessionId)
 
@@ -36,12 +40,18 @@ export default function TopCategoriesChart({
         if (!sessionId || !filters.dateRange.start) {
             return undefined;
         }
-        return {
-            sessionId,
-            durationStart: filters.dateRange.start,
-            durationEnd: filters.dateRange.end,
-        };
-    }, [sessionId, filters?.dateRange?.start, filters?.dateRange.end]);
+        const paramsObject: Record<string, string> = {
+      sessionId,
+      durationStart: filters.dateRange.start,
+      durationEnd: filters.dateRange.end,
+    };
+
+    if (userId) {
+      paramsObject.userId = userId;
+    }
+
+    return paramsObject;
+  }, [sessionId, filters?.dateRange?.start, filters?.dateRange.end, userId]);
 
 
   const transformData = useCallback((result: any): ChartData[] => {

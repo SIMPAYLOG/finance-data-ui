@@ -20,10 +20,9 @@ export default function Page() {
   oneMonthAgo.setMonth(today.getMonth() - 1)
 
   const formatDate = (date: Date) => {
-    return date.toISOString().split("T")[0] // "2025-08-31"
+    return date.toISOString().split("T")[0]
   }
 
-  // 쿼리에서 가져오되, 없으면 기본값 적용
   const durationStart = searchParams.get("durationStart") ?? formatDate(oneMonthAgo)
   const durationEnd = searchParams.get("durationEnd") ?? formatDate(today)
 
@@ -55,7 +54,7 @@ export default function Page() {
           <SidebarProvider>
             <AppSidebar activeView={activeView} setActiveView={setActiveView} />
               <div className="flex-1 overflow-auto">
-                <FilterPanel filters={filters} onFiltersChange={setFilters} hideTransactionFilter={activeView === 'dashboard'}/>
+                <FilterPanel filters={filters} onFiltersChange={setFilters} hideTransactionFilter={activeView != 'user-comparison'}/>
                 <DashboardLayout activeView={activeView} filters={filters}/>
               </div>
           </SidebarProvider>

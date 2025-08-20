@@ -16,6 +16,7 @@ interface ChartCardProps {
   children: React.ReactNode
   className?: string
   chartType?: "bar" | "line" | "pie" | "horizontalBar" | "groupedBar"
+  userId? : string
 }
 
 const chartTypeColors = {
@@ -34,7 +35,7 @@ const chartTypeLabels = {
   groupedBar: "Grouped Bar",
 }
 
-export function ChartCard({ title, description, children, className, chartType }: ChartCardProps) {
+export function ChartCard({ title, description, children, className, chartType, userId }: ChartCardProps) {
   const [isCustomizing, setIsCustomizing] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [chartConfig, setChartConfig] = useState({
@@ -61,7 +62,7 @@ export function ChartCard({ title, description, children, className, chartType }
             </div>
             {description && <CardDescription>{description}</CardDescription>}
           </div>
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* <div className="opacity-0 group-hover:opacity-100 transition-opacity">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
@@ -87,7 +88,7 @@ export function ChartCard({ title, description, children, className, chartType }
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
+          </div> */}
         </div>
       </CardHeader>
       <CardContent className="overflow-hidden">
@@ -99,7 +100,7 @@ export function ChartCard({ title, description, children, className, chartType }
         <div className="w-full h-[300px] min-h-[250px] max-h-[400px]">{children}</div>
       </CardContent>
 
-      {isEditing && (
+      {/* {isEditing && (
         <ChartEditor
           isOpen={isEditing}
           onClose={() => setIsEditing(false)}
@@ -107,7 +108,7 @@ export function ChartCard({ title, description, children, className, chartType }
           onConfigChange={setChartConfig}
           title={title}
         />
-      )}
+      )} */}
     </Card>
   )
 }

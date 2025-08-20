@@ -32,7 +32,7 @@ export function MainDashboard({ filters }: MainDashboardProps) {
             description="설정된 기간의 수입과 지출을 비교합니다"
             chartType="groupedBar"
           >
-            <IncomeExpensesCharByMonth isLoading={isLoading} filters={filters}/>
+            <IncomeExpensesCharByMonth isLoading={isLoading} filters={filters} refreshKey={refreshKey} />
           </ChartCard>
         </div>
 
@@ -48,6 +48,7 @@ export function MainDashboard({ filters }: MainDashboardProps) {
               colors: ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"],
               }}
             filters={filters}
+            refreshKey={refreshKey} 
             mappingUrl="/api/analysis/all-category-info"
           />
         </div>
@@ -61,11 +62,12 @@ export function MainDashboard({ filters }: MainDashboardProps) {
           initialConfig={{
             type: "line",
             xAxis: "hour",
-            yAxis: "avgSpentAmount",
+            yAxis: "totalSpentCount",
             aggregation: "avg",
             colors: ["hsl(var(--chart-3))"],
           }}
           filters={filters}
+          refreshKey={refreshKey} 
           mappingUrl="/api/analysis/amount-avg/by-hour"
         />
       </div>
@@ -76,7 +78,7 @@ export function MainDashboard({ filters }: MainDashboardProps) {
             title="💡 상위 소비 카테고리 TOP 5"
             description="가장 많이 지출한 카테고리를 확인합니다"
           >
-            <TopCategoriesChart isLoading={isLoading} filters={filters}/>
+            <TopCategoriesChart isLoading={isLoading} refreshKey={refreshKey} filters={filters}/>
           </ChartCard>
         </div>
 

@@ -12,6 +12,7 @@ interface UseKpiDataProps {
     }
   };
   refreshKey: number;
+  userId?: number;
 }
 
 export interface Kpi {
@@ -21,7 +22,7 @@ export interface Kpi {
   icon: React.ElementType;
 }
 
-export function useKpiData({ filters, refreshKey }: UseKpiDataProps) {
+export function useKpiData({ filters, refreshKey, userId }: UseKpiDataProps) {
   const [kpis, setKpis] = useState<Kpi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,29 +39,47 @@ export function useKpiData({ filters, refreshKey }: UseKpiDataProps) {
       setIsLoading(true);
       setError(null);
       try {
-        const [incomeRes, userCountRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/analysis/income-expense?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}`),
-          fetch(`${API_BASE_URL}/api/users/count?sessionId=${sessionId}&durationStart=${filters.dateRange.start}&durationEnd=${filters.dateRange.end}`)
-        ]);
+        const baseParams = new URLSearchParams({
+          sessionId: sessionId,
+          durationStart: filters.dateRange.start!,
+          durationEnd: filters.dateRange.end!,
+        });
+        if (userId) {
+          baseParams.append("userId", userId.toString());
+        }
+        const fetches = [
+          fetch(`${API_BASE_URL}/api/analysis/income-expense?${baseParams.toString()}`)
+        ];
+        if (!userId) {
+          fetches.push(fetch(`${API_BASE_URL}/api/users/count?${baseParams.toString()}`));
+        }
 
-        if (!incomeRes.ok || !userCountRes.ok) throw new Error("서버 응답 오류");
+        const responses = await Promise.all(fetches);
 
-        const incomeJson = await incomeRes.json();
-        const userCountJson = await userCountRes.json();
+        for (const res of responses) {
+          if (!res.ok) throw new Error("서버 응답 오류");
+        }
 
-        if (incomeJson.status.code !== "SUCCESS" || userCountJson.status.code !== "SUCCESS") {
+        const [incomeJson, userCountJson] = await Promise.all(responses.map(res => res.json()));
+
+        if (incomeJson.status.code !== "SUCCESS" || (userCountJson && userCountJson.status.code !== "SUCCESS")) {
           throw new Error("API 처리 중 에러 발생");
         }
         
-        const formatCurrency = (value: number) => new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
+        const formatCurrency = (value: number) => new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value || 0);
         
         const transformedData: Kpi[] = [
           { title: "총 수입", value: formatCurrency(incomeJson.result.totalIncome), trend: "neutral", icon: DollarSign },
           { title: "총 지출", value: formatCurrency(incomeJson.result.totalExpense), trend: "neutral", icon: CreditCard },
           { title: "순 저축", value: formatCurrency(incomeJson.result.savings), trend: incomeJson.result.savings >= 0 ? "up" : "down", icon: PiggyBank },
-          { title: "분석 대상자", value: `${userCountJson.result.totalUserCnt.toLocaleString()}명`, trend: "neutral", icon: Users },
         ];
+
+        if (!userId && userCountJson) {
+          transformedData.push({ title: "분석 대상자", value: `${userCountJson.result.totalUserCnt.toLocaleString()}명`, trend: "neutral", icon: Users });
+        }
+
         setKpis(transformedData);
+
       } catch (err: any) {
         setError(err.message || "데이터 조회 중 오류 발생");
       } finally {
