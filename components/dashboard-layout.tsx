@@ -1,10 +1,11 @@
 "use client"
 
 import { MainDashboard } from "@/components/main-dashboard"
-import { AdvancedAnalytics } from "@/components/advanced-analytics"
 import { UserComparison } from "@/components/user-comparison"
-import { DashboardSettings } from "@/components/dashboard-settings"
+import { UserAnalysis } from "@/components/user-analysis"
 import type { ActiveView } from "@/app/analyze/page"
+// import { AdvancedAnalytics } from "@/components/advanced-analytics"
+// import { DashboardSettings } from "@/components/dashboard-settings"
 
 interface DashboardLayoutProps {
   activeView: ActiveView
@@ -19,9 +20,9 @@ export function DashboardLayout({ activeView, filters }: DashboardLayoutProps) {
       case "user-comparison":
         return <UserComparison filters={filters} /> 
       case "analytics":
-        return <AdvancedAnalytics />
-      case "settings":
-        return <DashboardSettings />
+        return <UserAnalysis filters={filters} />
+      // case "settings":
+      //   return <DashboardSettings />
       default:
         return <MainDashboard filters={filters} />
     }
