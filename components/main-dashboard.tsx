@@ -8,6 +8,7 @@ import { KPICards } from "@/components/kpi-cards"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { CustomizableChartCard } from "@/components/customizable-chart-card"
 import IncomeExpensesCharByPreference from "@/components/charts/income-expenses-preference"
+import IncomeExpensesCharByMonth from "@/components/charts/income-expenses-by-month"
 
 const sampleData = [
   {
@@ -83,20 +84,13 @@ export function MainDashboard({ filters }: MainDashboardProps) {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="min-w-0">
-          {" "}
-          {/* min-w-0 추가로 flex 아이템이 축소될 수 있도록 */}
-          <CustomizableChartCard
+          <ChartCard
             title="📊 월별 수입/지출 비교"
-            description="최근 6개월간의 수입과 지출을 비교합니다"
-            initialConfig={{
-              type: "bar",
-              xAxis: "month",
-              yAxis: "income",
-              aggregation: "sum",
-              colors: ["hsl(var(--chart-1))"],
-            }}
-            data={sampleData}
-          />
+            description="설정된 기간의 수입과 지출을 비교합니다"
+            chartType="groupedBar"
+          >
+            <IncomeExpensesCharByMonth isLoading={isLoading} filters={filters}/>
+          </ChartCard>
         </div>
 
         <div className="min-w-0">
