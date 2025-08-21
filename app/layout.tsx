@@ -1,10 +1,13 @@
 import type { Metadata } from "next"
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import { Inter } from "next/font/google"
+import "@/styles/globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "DataGen - 스마트한 소비 데이터 생성 서비스",
+  title: "SIMPAYLOG - 금융데이터 트랜잭션 생성 서비스",
   description: "조건 기반으로 현실적인 소비 데이터를 생성하고 분석하세요"
 }
 
