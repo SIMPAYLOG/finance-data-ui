@@ -56,7 +56,7 @@ export function TransactionLog({ filters, userId, refreshKey }: TransactionLogPr
         }
       },
       {
-        root: scrollArea, // 👈 viewport 기준으로 감지
+        root: scrollArea,
         threshold: 0.1,
       }
     )

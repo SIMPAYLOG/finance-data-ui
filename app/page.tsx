@@ -136,7 +136,7 @@ export default function Home() {
           <p className="text-xl mb-8 opacity-90">몇 분 안에 원하는 조건의 소비 데이터를 생성하고 분석할 수 있습니다</p>
           <Link href="/generate">
             <Button size="lg" variant="secondary" className="text-lg px-8 py-4">
-              무료로 시작하기
+              시작하기
             </Button>
           </Link>
         </div>

@@ -1,30 +1,25 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { Suspense } from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Header } from "@/components/layout/header"
 import { useSearchParams } from "next/navigation";
 import FilterPanel from "@/components/filter-panel"
-import { useSessionStore } from "@/store/useSessionStore"
 
 export type ActiveView = "dashboard" | "analytics" | "user-comparison" | "settings"
 
-export default function Page() {
+function AnalyzeContent() {
   const [activeView, setActiveView] = useState<ActiveView>("dashboard")
   const searchParams = useSearchParams()
 
   const today = new Date()
-
   const oneMonthAgo = new Date(today)
   oneMonthAgo.setMonth(today.getMonth() - 1)
 
-  const formatDate = (date: Date) => {
-    return date.toISOString().split("T")[0]
-  }
-
+  const formatDate = (date: Date) => date.toISOString().split("T")[0]
   const durationStart = searchParams.get("durationStart") ?? formatDate(oneMonthAgo)
   const durationEnd = searchParams.get("durationEnd") ?? formatDate(today)
 
@@ -39,15 +34,8 @@ export default function Page() {
     incomeDecile: "all",
     amountRange: { min: 0, max: 10000000 },
   })
-
-  const router = useRouter(); 
-  const sessionId = useSessionStore((state) => state.sessionId);
-
+  
   useEffect(() => {
-    // if (!sessionId) {
-    //   alert("유효한 분석 세션이 없습니다. 홈 화면으로 이동합니다.");
-    //   router.replace('/');
-    // }
     if (activeView === 'user-comparison') {
       setFilters(currentFilters => ({
         ...currentFilters,
@@ -69,5 +57,13 @@ export default function Page() {
           </SidebarProvider>
       </div>
     </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading…</div>}>
+      <AnalyzeContent />
+    </Suspense>
   )
 }
