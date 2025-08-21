@@ -52,6 +52,7 @@ interface PeriodApiResponse {
   result: { data: PeriodData[] }
 }
 
+
 // ✅ 카테고리 매핑 테이블
 const CATEGORY_LABELS: Record<string, string> = {
   groceriesNonAlcoholicBeverages: "식료품 및 비알콜음료",
@@ -66,6 +67,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   housingUtilitiesFuel:  "주거 · 수도 · 광열",
   education: "교육",
 }
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export function UserComparison({ filters }: UserComparisonProps) {
   const sessionId = useSessionStore((state) => state.sessionId)
@@ -103,7 +106,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
   const loadUsers = async () => {
     if (!hasMore) return
     const res = await fetch(
-      `http://localhost:8080/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
+      `${API_BASE_URL}/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
     )
     const data = await res.json()
     setUsers((prev) => {
@@ -119,7 +122,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
 
   const loadUserCount = async () => {
     const res = await fetch(
-      `http://localhost:8080/api/users/count?sessionId=${sessionId}`
+      `${API_BASE_URL}/api/users/count?sessionId=${sessionId}`
     )
     const data = await res.json()
     setTotalUserCnt(data.result.totalUserCnt)
@@ -134,7 +137,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
   useEffect(() => {
     if (!start || !end) return
     fetch(
-      `http://localhost:8080/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
+      `${API_BASE_URL}/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
     )
       .then((res) => res.json())
       .then((data) => setOverallSummary(data.result))
@@ -143,7 +146,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
   useEffect(() => {
     if (!selectedUser || !start || !end) return
     fetch(
-      `http://localhost:8080/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
+      `${API_BASE_URL}/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
     )
       .then((res) => res.json())
       .then((data) => setSelectedSummary(data.result))
@@ -153,7 +156,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
   useEffect(() => {
     if (!start || !end) return
     fetch(
-      `http://localhost:8080/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
+      `${API_BASE_URL}/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
     )
       .then((res) => res.json())
       .then((data: CategoryApiResponse) => setGroupCategoryData(data.result.data))
@@ -163,7 +166,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
   useEffect(() => {
     if (!start || !end || !selectedUser) return
     fetch(
-      `http://localhost:8080/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
+      `${API_BASE_URL}/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
     )
       .then((res) => res.json())
       .then((data: CategoryApiResponse) => setUserCategoryData(data.result.data))
@@ -174,7 +177,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
   useEffect(() => {
     if (!start || !end) return
     fetch(
-      `http://localhost:8080/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month`
+      `${API_BASE_URL}/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month`
     )
       .then((res) => res.json())
       .then((data: PeriodApiResponse) => setGroupPeriodData(data.result.data))
@@ -184,7 +187,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
   useEffect(() => {
     if (!start || !end || !selectedUser) return
     fetch(
-      `http://localhost:8080/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month&userId=${selectedUser.userId}`
+      `${API_BASE_URL}/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month&userId=${selectedUser.userId}`
     )
       .then((res) => res.json())
       .then((data: PeriodApiResponse) => setUserPeriodData(data.result.data))

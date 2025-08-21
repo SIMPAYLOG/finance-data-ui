@@ -25,6 +25,8 @@ interface UserAnalysisProps {
   filters: any;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export function UserAnalysis({ filters }: UserAnalysisProps) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false)
@@ -45,7 +47,7 @@ const loadUsers = async () => {
   if (!hasMore) return
   try {
     const res = await fetch(
-      `http://localhost:8080/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
+      `${API_BASE_URL}/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
     )
 
     if (!res.ok) {
