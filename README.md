@@ -1,70 +1,48 @@
-# Getting Started with Create React App
+# 🌐 Finance Data UI
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 📌 프로젝트 개요 (Overview)
+이 레포지토리는 **Transaction Data Generator 서비스의 프론트엔드** 애플리케이션입니다.  
+사용자가 생성된 금융 트랜잭션 데이터를 **시각화·분석**할 수 있도록 웹 인터페이스를 제공합니다.
 
-## Available Scripts
+- 트랜잭션 데이터 조회 및 검색
+- 카테고리별 소비/수입 패턴 분석 차트
+- 사용자 시뮬레이션 결과 대시보드
 
-In the project directory, you can run:
+백엔드 API 서버(`api` 모듈)와 통신하여 데이터를 가져오며, 프론트엔드와 백엔드 레포지토리는 **별도로 관리**됩니다.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🏗 기술 스택 (Tech Stack)
+- **Framework**: Next.js / React
+- **Language**: TypeScript / JavaScript
+- **UI**: TailwindCSS, Chart.js (또는 Recharts)
+- **Build & Deploy**: Docker, Vercel (optional)
+- **API 통신**: REST API (백엔드 `api` 모듈)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## ✨ 주요 기능 (Features)
+- **실시간 트랜잭션 데이터 시각화**
+  - 카테고리별 소비 금액 차트
+  - 일/주/월 단위 트렌드 분석
+- **사용자별 대시보드**
+  - 세션 단위 시뮬레이션 데이터 확인
+  - 주요 지출/입금 내역 표시
+- **검색 및 필터**
+  - 기간별, 카테고리별 트랜잭션 필터링
+- **반응형 UI**
+  - 모바일/데스크톱 환경 최적화
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## ⚙️ 설치 및 실행 방법 (Installation & Run)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1. 요구사항
+- Node.js 20+
+- npm 또는 yarn
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### 2. 클론 및 설치
+```bash
+git clone https://github.com/SIMPAYLOG/finance-data-ui.git
+cd finance-data-ui
+docker compose up -d –build
