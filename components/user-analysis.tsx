@@ -123,7 +123,7 @@ const loadUsers = async () => {
           title="트랜잭션 분석 대시보드"
           description="개인 및 집단 사용자의 금융 데이터를 종합적으로 분석합니다"
         />
-        
+
         {/* 비교 대상 설정 */}
         <Card>
           <CardHeader>
@@ -167,19 +167,19 @@ const loadUsers = async () => {
               )}
             </div>
 
-            {/* 선택된 사용자 정보 */}
-            {selectedUser && (
-              <>
-                <div className="p-2 bg-gray-50 rounded-md border">나이: {selectedUser.age}대</div>
-                <div className="p-2 bg-gray-50 rounded-md border">직업: {filters.occupationName}</div>
-                <div className="p-2 bg-gray-50 rounded-md border">소비 성향: {filters.preference}</div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        {selectedUser ? (
-        <>  
-          <KPICards filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId} />
+          {/* 선택된 사용자 정보 */}
+          {selectedUser && (
+            <>
+              <div className="p-2 bg-gray-50 rounded-md border">나이: {selectedUser.age}대</div>
+              <div className="p-2 bg-gray-50 rounded-md border">직업: {selectedUser.occupationName}</div>
+              <div className="p-2 bg-gray-50 rounded-md border">소비 성향: {selectedUser.preferenceId}</div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+      {selectedUser ? (
+      <>  
+      <KPICards filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId} />
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <div className="min-w-0">
@@ -209,7 +209,7 @@ const loadUsers = async () => {
                 userId={selectedUser?.userId.toString()}
               />
             </div>
-            
+
           </div>
 
           <div className="min-w-0">
@@ -224,7 +224,7 @@ const loadUsers = async () => {
                 colors: ["hsl(var(--chart-3))"],
               }}
               filters={filters}
-              refreshKey={refreshKey} 
+              refreshKey={refreshKey}
               mappingUrl="/api/analysis/amount-avg/by-hour"
               userId={selectedUser?.userId.toString()}
             />

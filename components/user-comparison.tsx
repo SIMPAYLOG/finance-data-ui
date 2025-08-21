@@ -63,7 +63,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   clothingFootwear: "의류 및 신발",
   health: "보건",
   householdGoodsServices: "가정용품 및 서비스",
-  housingUtilitiesFuel: "주거 · 수도 · 광열",
+  housingUtilitiesFuel:  "주거 · 수도 · 광열",
   education: "교육",
 }
 
@@ -84,6 +84,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
   // 무한 스크롤 & 드롭다운
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(true)
+  const [totalUserCnt, setTotalUserCnt] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -94,15 +95,6 @@ export function UserComparison({ filters }: UserComparisonProps) {
   const transactionType: "WITHDRAW" | "DEPOSIT" | "all" = filters?.transactionType ?? "all"
   const isDeposit = transactionType === "DEPOSIT"
 
-  // mounted flag to avoid setState on unmounted component
-  const isMountedRef = useRef(true)
-  useEffect(() => {
-    isMountedRef.current = true
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
-
   // --- 유틸 ---
   const fmtPct = (x: number, digits = 1) => `${x.toFixed(digits)}%`
   const pct = (num: number, den: number) => (den === 0 ? 0 : (num / den) * 100)
@@ -110,193 +102,93 @@ export function UserComparison({ filters }: UserComparisonProps) {
   // --- 전체 유저 로드 ---
   const loadUsers = async () => {
     if (!hasMore) return
-    try {
-      const res = await fetch(
-        `http://localhost:8080/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
-      )
-      if (!res.ok) {
-        console.error("loadUsers: response not ok", res.status)
-        // 실패 시 더 이상 로드하지 않도록 설정
-        if (isMountedRef.current) {
-          setHasMore(false)
-        }
-        return
+    const res = await fetch(
+      `http://localhost:8080/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
+    )
+    const data = await res.json()
+    setUsers((prev) => {
+      const updatedUsers = [...prev, ...data.result.content]
+      if (page === 0 && updatedUsers.length > 0 && !selectedUser) {
+        handleSelectUser(updatedUsers[0])
       }
-      const data = await res.json()
-      const content: User[] = data?.result?.content ?? []
-      if (isMountedRef.current) {
-        setUsers((prev) => {
-          const updatedUsers = [...prev, ...content]
-          if (page === 0 && updatedUsers.length > 0 && !selectedUser) {
-            // 최초 로드 시 자동 선택 (안전하게)
-            handleSelectUser(updatedUsers[0])
-          }
-          return updatedUsers
-        })
-        setHasMore(Boolean(!data?.result?.last ? true : !data.result.last))
-        setPage((prev) => prev + 1)
-      }
-    } catch (err) {
-      console.error("loadUsers error:", err)
-      if (isMountedRef.current) {
-        setHasMore(false)
-      }
-    }
+      return updatedUsers
+    })
+    setHasMore(!data.result.last)
+    setPage((prev) => prev + 1)
+  }
+
+  const loadUserCount = async () => {
+    const res = await fetch(
+      `http://localhost:8080/api/users/count?sessionId=${sessionId}`
+    )
+    const data = await res.json()
+    setTotalUserCnt(data.result.totalUserCnt)
   }
 
   useEffect(() => {
-    // 페이지/유저 리스트 초기화 (sessionId가 바뀌면 새로 시작)
-    setUsers([])
-    setPage(0)
-    setHasMore(true)
     loadUsers()
+    loadUserCount()
   }, [sessionId])
 
   // --- Summary 로드 (집단/개인) ---
   useEffect(() => {
     if (!start || !end) return
-
-    const fetchOverallSummary = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:8080/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
-        )
-        if (!res.ok) {
-          console.error("fetchOverallSummary failed:", res.status)
-          if (isMountedRef.current) setOverallSummary(null)
-          return
-        }
-        const data = await res.json()
-        if (isMountedRef.current) setOverallSummary(data?.result ?? null)
-      } catch (err) {
-        console.error("fetchOverallSummary error:", err)
-        if (isMountedRef.current) setOverallSummary(null)
-      }
-    }
-
-    fetchOverallSummary()
+    fetch(
+      `http://localhost:8080/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
+    )
+      .then((res) => res.json())
+      .then((data) => setOverallSummary(data.result))
   }, [sessionId, start, end])
 
   useEffect(() => {
     if (!selectedUser || !start || !end) return
-
-    const fetchSelectedSummary = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:8080/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
-        )
-        if (!res.ok) {
-          console.error("fetchSelectedSummary failed:", res.status)
-          if (isMountedRef.current) setSelectedSummary(null)
-          return
-        }
-        const data = await res.json()
-        if (isMountedRef.current) setSelectedSummary(data?.result ?? null)
-      } catch (err) {
-        console.error("fetchSelectedSummary error:", err)
-        if (isMountedRef.current) setSelectedSummary(null)
-      }
-    }
-
-    fetchSelectedSummary()
+    fetch(
+      `http://localhost:8080/api/analysis/amount-avg/by-transaction-type?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
+    )
+      .then((res) => res.json())
+      .then((data) => setSelectedSummary(data.result))
   }, [selectedUser, sessionId, start, end])
 
   // --- 카테고리 데이터 로드 (집단/개인) ---
   useEffect(() => {
     if (!start || !end) return
-
-    const fetchGroupCategory = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:8080/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
-        )
-        if (!res.ok) {
-          console.error("fetchGroupCategory failed:", res.status)
-          if (isMountedRef.current) setGroupCategoryData([])
-          return
-        }
-        const data: CategoryApiResponse = await res.json()
-        if (isMountedRef.current) setGroupCategoryData(data?.result?.data ?? [])
-      } catch (err) {
-        console.error("그룹 카테고리 로드 실패:", err)
-        if (isMountedRef.current) setGroupCategoryData([])
-      }
-    }
-
-    fetchGroupCategory()
+    fetch(
+      `http://localhost:8080/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}`
+    )
+      .then((res) => res.json())
+      .then((data: CategoryApiResponse) => setGroupCategoryData(data.result.data))
+      .catch((err) => console.error("그룹 카테고리 로드 실패:", err))
   }, [sessionId, start, end])
 
   useEffect(() => {
     if (!start || !end || !selectedUser) return
-
-    const fetchUserCategory = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:8080/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
-        )
-        if (!res.ok) {
-          console.error("fetchUserCategory failed:", res.status)
-          if (isMountedRef.current) setUserCategoryData([])
-          return
-        }
-        const data: CategoryApiResponse = await res.json()
-        if (isMountedRef.current) setUserCategoryData(data?.result?.data ?? [])
-      } catch (err) {
-        console.error("개인 카테고리 로드 실패:", err)
-        if (isMountedRef.current) setUserCategoryData([])
-      }
-    }
-
-    fetchUserCategory()
+    fetch(
+      `http://localhost:8080/api/analysis/category/by-userId?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&userId=${selectedUser.userId}`
+    )
+      .then((res) => res.json())
+      .then((data: CategoryApiResponse) => setUserCategoryData(data.result.data))
+      .catch((err) => console.error("개인 카테고리 로드 실패:", err))
   }, [sessionId, start, end, selectedUser])
 
   // --- 월별 데이터 로드 (집단/개인) ---
   useEffect(() => {
     if (!start || !end) return
-
-    const fetchGroupPeriod = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:8080/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month`
-        )
-        if (!res.ok) {
-          console.error("fetchGroupPeriod failed:", res.status)
-          if (isMountedRef.current) setGroupPeriodData([])
-          return
-        }
-        const data: PeriodApiResponse = await res.json()
-        if (isMountedRef.current) setGroupPeriodData(data?.result?.data ?? [])
-      } catch (err) {
-        console.error("그룹 월별 로드 실패:", err)
-        if (isMountedRef.current) setGroupPeriodData([])
-      }
-    }
-
-    fetchGroupPeriod()
+    fetch(
+      `http://localhost:8080/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month`
+    )
+      .then((res) => res.json())
+      .then((data: PeriodApiResponse) => setGroupPeriodData(data.result.data))
+      .catch((err) => console.error("그룹 월별 로드 실패:", err))
   }, [sessionId, start, end])
 
   useEffect(() => {
     if (!start || !end || !selectedUser) return
-
-    const fetchUserPeriod = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:8080/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month&userId=${selectedUser.userId}`
-        )
-        if (!res.ok) {
-          console.error("fetchUserPeriod failed:", res.status)
-          if (isMountedRef.current) setUserPeriodData([])
-          return
-        }
-        const data: PeriodApiResponse = await res.json()
-        if (isMountedRef.current) setUserPeriodData(data?.result?.data ?? [])
-      } catch (err) {
-        console.error("개인 월별 로드 실패:", err)
-        if (isMountedRef.current) setUserPeriodData([])
-      }
-    }
-
-    fetchUserPeriod()
+    fetch(
+      `http://localhost:8080/api/analysis/search-period-amount?sessionId=${sessionId}&durationStart=${start}&durationEnd=${end}&interval=month&userId=${selectedUser.userId}`
+    )
+      .then((res) => res.json())
+      .then((data: PeriodApiResponse) => setUserPeriodData(data.result.data))
+      .catch((err) => console.error("개인 월별 로드 실패:", err))
   }, [sessionId, start, end, selectedUser])
 
   // --- 무한 스크롤 ---
@@ -313,15 +205,10 @@ export function UserComparison({ filters }: UserComparisonProps) {
     setSelectedUser(user)
     setIsOpen(false)
     // NOTE: 외부 필터 객체에 값 반영 (기존 동작 유지)
-    try {
-      filters.age = user.age
-      filters.gender = user.gender === "M" ? "남자" : "여자"
-      filters.occupationName = user.occupationName
-      filters.preference = user.preferenceId
-    } catch (err) {
-      // filters가 읽기전용 등 예외 상황 방어
-      console.warn("handleSelectUser: filters 반영 실패", err)
-    }
+    filters.age = user.age
+    filters.gender = user.gender === "M" ? "남자" : "여자"
+    filters.occupationName = user.occupationName
+    filters.preference = user.preferenceId
   }
 
   // --- 드롭다운 외부 클릭 시 닫기 ---
@@ -568,8 +455,8 @@ export function UserComparison({ filters }: UserComparisonProps) {
           {selectedUser && (
             <>
               <div className="p-2 bg-gray-50 rounded-md border">나이: {selectedUser.age}대</div>
-              <div className="p-2 bg-gray-50 rounded-md border">직업: {filters.occupationName}</div>
-              <div className="p-2 bg-gray-50 rounded-md border">소비 성향: {filters.preference}</div>
+              <div className="p-2 bg-gray-50 rounded-md border">직업: {selectedUser.occupationName}</div>
+              <div className="p-2 bg-gray-50 rounded-md border">소비 성향: {selectedUser.preferenceId}</div>
             </>
           )}
         </CardContent>
@@ -623,7 +510,9 @@ export function UserComparison({ filters }: UserComparisonProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>비교 집단 규모</CardDescription>
-            <CardTitle className="text-2xl">100명</CardTitle>
+            <CardTitle className="text-2xl">
+              {totalUserCnt !== null ? `${totalUserCnt}명` : "로딩 중..."}
+            </CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -636,8 +525,8 @@ export function UserComparison({ filters }: UserComparisonProps) {
         >
           {isDeposit ? (
             <IncomeCompareChart
-              overallSummary={overallSummary}
-              selectedSummary={selectedSummary}
+              overallSummary = {overallSummary}
+              selectedSummary = {selectedSummary}
             />
           ) : (
             <GroupComparisonChart
