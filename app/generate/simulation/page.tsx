@@ -1,12 +1,12 @@
 "use client"
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useValidatedWebSocket } from '@/hooks/use-validated-websocket';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, ArrowLeft, Download } from "lucide-react";
+import { BarChart3, ArrowLeft } from "lucide-react";
 
 function SimulationContent() {
   const searchParams = useSearchParams();
@@ -14,6 +14,8 @@ function SimulationContent() {
   const sessionId = searchParams.get('sessionId');
   const durationStart = searchParams.get('durationStart');
   const durationEnd = searchParams.get('durationEnd');
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const { socketStatus, progressMessages } = useValidatedWebSocket(
     sessionId,
@@ -23,13 +25,21 @@ function SimulationContent() {
 
   const isComplete = socketStatus === "연결 종료";
 
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [progressMessages]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="border-b bg-white">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
             <BarChart3 className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">DataGen</h1>
+            <h1 className="text-2xl font-bold text-gray-900">SIMPAYLOG</h1>
+          </div>
           </Link>
           <Link href="/"><Button variant="ghost" size="sm"><ArrowLeft className="mr-2 h-4 w-4" />홈으로</Button></Link>
         </div>
@@ -44,21 +54,31 @@ function SimulationContent() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="p-4 bg-gray-100 rounded-lg h-64 overflow-y-auto space-y-2 font-mono text-sm">
+            <div 
+              ref={scrollContainerRef} 
+              className="p-4 bg-gray-100 rounded-lg h-64 overflow-y-auto space-y-2 font-mono text-sm"
+            >
               <p>상태: <span className={isComplete ? "text-green-600" : "text-blue-600"}>{socketStatus}</span></p>
               {progressMessages.map((msg, index) => (
                 <p key={index} className="text-gray-700">▶ {msg}</p>
               ))}
             </div>
 
+            {/* <div className="p-4 bg-gray-100 rounded-lg h-64 overflow-y-auto space-y-2 font-mono text-sm">
+              <p>상태: <span className={isComplete ? "text-green-600" : "text-blue-600"}>{socketStatus}</span></p>
+              {progressMessages.map((msg, index) => (
+                <p key={index} className="text-gray-700">▶ {msg}</p>
+              ))}
+            </div> */}
+
             {isComplete && (
               <div className="grid md:grid-cols-2 gap-4">
-                <Button className="w-full" onClick={() => alert('JSON 다운로드')}>
+                {/* <Button className="w-full" onClick={() => alert('JSON 다운로드')}>
                   <Download className="mr-2 h-4 w-4" /> JSON 다운로드
                 </Button>
                 <Button className="w-full" variant="outline" onClick={() => alert('CSV 다운로드')}>
                   <Download className="mr-2 h-4 w-4" /> CSV 다운로드
-                </Button>
+                </Button> */}
                 <Button className="w-full" variant="secondary" onClick={() => {
                   router.push(`/analyze?durationStart=${durationStart}&durationEnd=${durationEnd}`);
                 }}>

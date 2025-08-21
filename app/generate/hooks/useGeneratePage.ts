@@ -44,7 +44,6 @@ export function useGeneratePage() {
     const [preferenceOptions, setPreferenceOptions] = useState<PreferenceOption[]>([]);
     
     const [isLoading, setIsLoading] = useState(true);
-
     useEffect(() => {
         const fetchAllInitialData = async () => {
           try {
@@ -65,6 +64,7 @@ export function useGeneratePage() {
           } catch (error) {
             console.error("Failed to fetch initial data:", error);
             alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            router.replace('/');
           } finally {
             setIsLoading(false);
           }

@@ -1,12 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Header } from "@/components/layout/header"
 import { useSearchParams } from "next/navigation";
 import FilterPanel from "@/components/filter-panel"
+import { useSessionStore } from "@/store/useSessionStore"
 
 export type ActiveView = "dashboard" | "analytics" | "user-comparison" | "settings"
 
@@ -38,7 +40,14 @@ export default function Page() {
     amountRange: { min: 0, max: 10000000 },
   })
 
+  const router = useRouter(); 
+  const sessionId = useSessionStore((state) => state.sessionId);
+
   useEffect(() => {
+    // if (!sessionId) {
+    //   alert("유효한 분석 세션이 없습니다. 홈 화면으로 이동합니다.");
+    //   router.replace('/');
+    // }
     if (activeView === 'user-comparison') {
       setFilters(currentFilters => ({
         ...currentFilters,

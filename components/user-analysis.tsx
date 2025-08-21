@@ -6,9 +6,9 @@ import TopCategoriesChart from "@/components/charts/top-categories-chart"
 import HeatmapChart from "@/components/charts/heatmap-chart"
 import { KPICards } from "@/components/kpi-cards"
 import { DashboardHeader } from "@/components/dashboard-header"
-import IncomeExpensesCharByPreference from "@/components/charts/income-expenses-preference"
 import IncomeExpensesCharByMonth from "@/components/charts/income-expenses-by-month"
 import { CustomChart } from "@/components/custom-chart"
+import { TransactionLog } from "@/components/charts/transaction-log"
 import { useSessionStore } from "@/store/useSessionStore"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -118,137 +118,146 @@ const loadUsers = async () => {
 
 
   return (
-    <div className="p-6 space-y-6 h-full overflow-auto">
-      <DashboardHeader
-        title="트랜잭션 분석 대시보드"
-        description="개인 및 집단 사용자의 금융 데이터를 종합적으로 분석합니다"
-      />
+      <div className="p-6 space-y-6 h-full overflow-auto">
+        <DashboardHeader
+          title="트랜잭션 분석 대시보드"
+          description="개인 및 집단 사용자의 금융 데이터를 종합적으로 분석합니다"
+        />
+        
+        {/* 비교 대상 설정 */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>분석 대상 설정</CardTitle>
+                <CardDescription>분석할 사용자를 선택하세요</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* 사용자 선택 드롭다운 */}
+            <div className="relative w-full" ref={dropdownRef}>
+              <button
+                type="button"
+                className="w-full border rounded-md p-2 text-left bg-white"
+                onClick={() => setIsOpen((prev) => !prev)}
+              >
+                {selectedUser ? `${selectedUser.name}` : "사용자 선택"}
+              </button>
 
-    {/* 비교 대상 설정 */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>비교 대상 설정</CardTitle>
-              <CardDescription>분석할 사용자와 비교할 집단을 선택하세요</CardDescription>
+              {isOpen && (
+                <div
+                  ref={listRef}
+                  onScroll={handleScroll}
+                  className="absolute z-10 mt-1 w-full max-h-60 overflow-auto border rounded-md bg-white shadow-lg"
+                >
+                  {users.map((user, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleSelectUser(user)}
+                    >
+                      {user.name} ({user.occupationName})
+                    </div>
+                  ))}
+                  {!hasMore && (
+                    <div className="text-center text-gray-400 py-2">모든 사용자 로드 완료</div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 선택된 사용자 정보 */}
+            {selectedUser && (
+              <>
+                <div className="p-2 bg-gray-50 rounded-md border">나이: {selectedUser.age}대</div>
+                <div className="p-2 bg-gray-50 rounded-md border">직업: {filters.occupationName}</div>
+                <div className="p-2 bg-gray-50 rounded-md border">소비 성향: {filters.preference}</div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        {selectedUser ? (
+        <>  
+          <KPICards filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId} />
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="min-w-0">
+              <ChartCard
+                title="📊 월별 수입/지출 비교"
+                description="설정된 기간의 수입과 지출을 비교합니다"
+                chartType="groupedBar"
+              >
+                <IncomeExpensesCharByMonth isLoading={isLoading} filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId.toString()}  />
+              </ChartCard>
+            </div>
+
+            <div className="min-w-0">
+              <CustomChart
+                title="🧁 카테고리별 지출 비중"
+                description="주요 지출 카테고리별 비중을 보여줍니다"
+                initialConfig={{
+                  type: "pie",
+                  xAxis: "category",
+                  yAxis: "income",
+                  aggregation: "sum",
+                  colors: ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"],
+                  }}
+                refreshKey={refreshKey}
+                filters={filters}
+                mappingUrl="/api/analysis/all-category-info"
+                userId={selectedUser?.userId.toString()}
+              />
+            </div>
+            
+          </div>
+
+          <div className="min-w-0">
+            <CustomChart
+              title="📈 시간 흐름에 따른 평균 지출액 변화"
+              description="시간별 평균 지출액 추이를 확인할 수 있습니다"
+              initialConfig={{
+                type: "line",
+                xAxis: "hour",
+                yAxis: "totalSpentCount",
+                aggregation: "avg",
+                colors: ["hsl(var(--chart-3))"],
+              }}
+              filters={filters}
+              refreshKey={refreshKey} 
+              mappingUrl="/api/analysis/amount-avg/by-hour"
+              userId={selectedUser?.userId.toString()}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="min-w-0">
+              <ChartCard
+                title="💡 상위 소비 카테고리 TOP 5"
+                description="가장 많이 지출한 카테고리를 확인합니다"
+              >
+                <TopCategoriesChart isLoading={isLoading} filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId.toString()}/>
+              </ChartCard>
+            </div>
+
+            <div className="min-w-0">
+              <ChartCard
+                title="🗓 요일-시간별 트랜잭션 밀도"
+                description="요일-시간별 소비 패턴을 비교합니다"
+              >
+                <HeatmapChart isLoading={isLoading} filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId.toString()}/>
+              </ChartCard>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* 사용자 선택 드롭다운 */}
-          <div className="relative w-full" ref={dropdownRef}>
-            <button
-              type="button"
-              className="w-full border rounded-md p-2 text-left bg-white"
-              onClick={() => setIsOpen((prev) => !prev)}
+
+          <div className="min-w-0">
+            <ChartCard
+              title="📜 트랜잭션 상세 로그"
+              description="선택된 사용자의 전체 거래 내역을 확인합니다."
             >
-              {selectedUser ? `${selectedUser.name}` : "사용자 선택"}
-            </button>
-
-            {isOpen && (
-              <div
-                ref={listRef}
-                onScroll={handleScroll}
-                className="absolute z-10 mt-1 w-full max-h-60 overflow-auto border rounded-md bg-white shadow-lg"
-              >
-                {users.map((user, idx) => (
-                  <div
-                    key={idx}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleSelectUser(user)}
-                  >
-                    {user.name} ({user.occupationName})
-                  </div>
-                ))}
-                {!hasMore && (
-                  <div className="text-center text-gray-400 py-2">모든 사용자 로드 완료</div>
-                )}
-              </div>
-            )}
+              <TransactionLog filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId.toString()}/>
+            </ChartCard>
           </div>
-
-          {/* 선택된 사용자 정보 */}
-          {selectedUser && (
-            <>
-              <div className="p-2 bg-gray-50 rounded-md border">나이: {selectedUser.age}대</div>
-              <div className="p-2 bg-gray-50 rounded-md border">직업: {filters.occupationName}</div>
-              <div className="p-2 bg-gray-50 rounded-md border">소비 성향: {filters.preference}</div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-      {selectedUser ? (
-      <>  
-      <KPICards filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId} />
-
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="min-w-0">
-          <ChartCard
-            title="📊 월별 수입/지출 비교"
-            description="설정된 기간의 수입과 지출을 비교합니다"
-            chartType="groupedBar"
-          >
-            <IncomeExpensesCharByMonth isLoading={isLoading} filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId.toString()}  />
-          </ChartCard>
-        </div>
-
-        <div className="min-w-0">
-          <CustomChart
-            title="🧁 카테고리별 지출 비중"
-            description="주요 지출 카테고리별 비중을 보여줍니다"
-            initialConfig={{
-              type: "pie",
-              xAxis: "category",
-              yAxis: "income",
-              aggregation: "sum",
-              colors: ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"],
-              }}
-            refreshKey={refreshKey}
-            filters={filters}
-            mappingUrl="/api/analysis/all-category-info"
-            userId={selectedUser?.userId.toString()}
-          />
-        </div>
-        
-      </div>
-
-      <div className="min-w-0">
-        <CustomChart
-          title="📈 시간 흐름에 따른 평균 지출액 변화"
-          description="시간별 평균 지출액 추이를 확인할 수 있습니다"
-          initialConfig={{
-            type: "line",
-            xAxis: "hour",
-            yAxis: "totalSpentCount",
-            aggregation: "avg",
-            colors: ["hsl(var(--chart-3))"],
-          }}
-          filters={filters}
-          refreshKey={refreshKey} 
-          mappingUrl="/api/analysis/amount-avg/by-hour"
-          userId={selectedUser?.userId.toString()}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="min-w-0">
-          <ChartCard
-            title="💡 상위 소비 카테고리 TOP 5"
-            description="가장 많이 지출한 카테고리를 확인합니다"
-          >
-            <TopCategoriesChart isLoading={isLoading} filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId.toString()}/>
-          </ChartCard>
-        </div>
-
-        <div className="min-w-0">
-          <ChartCard
-            title="🗓 요일-시간별 트랜잭션 밀도"
-            description="요일-시간별 소비 패턴을 비교합니다"
-          >
-            <HeatmapChart isLoading={isLoading} filters={filters} refreshKey={refreshKey} userId={selectedUser?.userId.toString()}/>
-          </ChartCard>
-        </div>
-      </div>
       </>
     ) : (
       <div className="flex items-center justify-center h-64">
