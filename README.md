@@ -40,6 +40,7 @@
 ### 1. 요구사항
 - Node.js 20+
 - npm 또는 yarn
+- Docker & Docker Compose
 
 ### 2. 클론 및 설치
 ```bash
