@@ -84,6 +84,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
   // 무한 스크롤 & 드롭다운
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(true)
+  const [totalUserCnt, setTotalUserCnt] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -116,8 +117,17 @@ export function UserComparison({ filters }: UserComparisonProps) {
     setPage((prev) => prev + 1)
   }
 
+  const loadUserCount = async () => {
+    const res = await fetch(
+      `http://localhost:8080/api/users/count?sessionId=${sessionId}`
+    )
+    const data = await res.json()
+    setTotalUserCnt(data.result.totalUserCnt)
+  }
+
   useEffect(() => {
     loadUsers()
+    loadUserCount()
   }, [sessionId])
 
   // --- Summary 로드 (집단/개인) ---
@@ -500,7 +510,9 @@ export function UserComparison({ filters }: UserComparisonProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>비교 집단 규모</CardDescription>
-            <CardTitle className="text-2xl">100명</CardTitle>
+            <CardTitle className="text-2xl">
+              {totalUserCnt !== null ? `${totalUserCnt}명` : "로딩 중..."}
+            </CardTitle>
           </CardHeader>
         </Card>
       </div>
