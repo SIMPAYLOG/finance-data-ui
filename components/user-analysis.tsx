@@ -221,7 +221,7 @@ const loadUsers = async () => {
               initialConfig={{
                 type: "line",
                 xAxis: "hour",
-                yAxis: "totalSpentCount",
+                yAxis: "avgSpentAmount",
                 aggregation: "avg",
                 colors: ["hsl(var(--chart-3))"],
               }}
