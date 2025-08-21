@@ -81,13 +81,13 @@ export default function HeatmapChart({
             </div>
           ) : (
             <div className="space-y-2">
-              <div className="grid grid-cols-8 ml-8">
+              {/* <div className="grid grid-cols-8 ml-8">
                 {[0, 3, 6, 9, 12, 15, 18, 21].map((hour) => (
                   <div key={hour} className="text-xs text-muted-foreground w-6 text-center">
                     {hour}
                   </div>
                 ))}
-              </div>
+              </div> */}
               {days.map((day, dayIndex) => (
                 <div key={day} className="flex items-center gap-2 mb-1">
                   <div className="w-8 text-xs text-muted-foreground text-right">{day}</div>
