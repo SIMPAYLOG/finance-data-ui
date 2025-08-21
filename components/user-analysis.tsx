@@ -171,8 +171,8 @@ const loadUsers = async () => {
           {selectedUser && (
             <>
               <div className="p-2 bg-gray-50 rounded-md border">나이: {selectedUser.age}대</div>
-              <div className="p-2 bg-gray-50 rounded-md border">직업: {filters.occupationName}</div>
-              <div className="p-2 bg-gray-50 rounded-md border">소비 성향: {filters.preference}</div>
+              <div className="p-2 bg-gray-50 rounded-md border">직업: {selectedUser.occupationName}</div>
+              <div className="p-2 bg-gray-50 rounded-md border">소비 성향: {selectedUser.preferenceId}</div>
             </>
           )}
         </CardContent>
