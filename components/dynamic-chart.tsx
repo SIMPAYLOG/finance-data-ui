@@ -15,6 +15,7 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { fieldNameMapping } from "@/components/mapping/fieldNameMapping"
 
 interface DynamicChartProps {
   config: {
@@ -88,7 +89,7 @@ export function DynamicChart({ config, data }: DynamicChartProps) {
 
   const chartConfig = {
     [config.yAxis]: {
-      label: config.yAxis,
+      label: fieldNameMapping[config.yAxis] || config.yAxis,
       color: config.colors?.[0] || "hsl(var(--chart-1))",
     },
   }

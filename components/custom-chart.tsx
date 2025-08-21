@@ -75,7 +75,8 @@ export function CustomChart({
      refreshKey: refreshKey,
   })
 
-
+  console.log(data)
+  
   return (
     <ChartCard title={title} description={description} chartType={chartConfig.type}>
       <DynamicChart config={chartConfig} data={Array.isArray(data) ? data : []} />
