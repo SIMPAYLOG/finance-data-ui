@@ -45,4 +45,4 @@
 ```bash
 git clone https://github.com/SIMPAYLOG/finance-data-ui.git
 cd finance-data-ui
-docker compose up -d –build
+docker compose up -d --build
