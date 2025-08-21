@@ -3,6 +3,7 @@ import { useSessionStore } from '@/store/useSessionStore';
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 import type {
   FrontendFormDataItem, AgeGroupOption, OccupationOption, PreferenceOption,
@@ -20,29 +21,29 @@ export function useGeneratePage() {
   const [formData, setFormData] = useState<FrontendFormDataItem>(initialFormData);  
 
     const handleDateChange = (field: 'durationStart' | 'durationEnd', date: Date | undefined) => {
-        const normalizedDate = date 
-            ? new Date(date.getFullYear(), date.getMonth(), date.getDate()) 
-            : undefined;
-        setFormData((prev) => {
-            const newState = {
-                ...prev,
-                [field]: normalizedDate, // 정규화된 날짜를 저장
-            };
+    const finalValue = date 
+        ? formatInTimeZone(date, 'Asia/Seoul', 'yyyy-MM-dd')
+        : undefined;
 
-            if (field === 'durationStart' && !normalizedDate) {
-                newState.durationEnd = undefined;
-            }
+    setFormData((prev) => {
+        const newState = {
+            ...prev,
+            [field]: finalValue,
+        };
 
-            return newState;
-        });
-    };
+        if (field === 'durationStart' && !finalValue) {
+            newState.durationEnd = undefined;
+        }
+
+        return newState;
+    });
+};
 
     const [ageGroupOptions, setAgeGroupOptions] = useState<AgeGroupOption[]>([]);
     const [occupationOptions, setOccupationOptions] = useState<OccupationOption[]>([]);
     const [preferenceOptions, setPreferenceOptions] = useState<PreferenceOption[]>([]);
     
     const [isLoading, setIsLoading] = useState(true);
-
     useEffect(() => {
         const fetchAllInitialData = async () => {
           try {
@@ -63,6 +64,7 @@ export function useGeneratePage() {
           } catch (error) {
             console.error("Failed to fetch initial data:", error);
             alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            router.replace('/');
           } finally {
             setIsLoading(false);
           }

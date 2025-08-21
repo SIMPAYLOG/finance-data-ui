@@ -1,4 +1,5 @@
-import { create } from 'zustand'
+import { create } from "zustand"
+import { persist, createJSONStorage } from "zustand/middleware"
 
 interface SessionState {
   sessionId: string | null
@@ -6,8 +7,16 @@ interface SessionState {
   clearSessionId: () => void
 }
 
-export const useSessionStore = create<SessionState>((set) => ({
-  sessionId: null,
-  setSessionId: (id) => set({ sessionId: id }),
-  clearSessionId: () => set({ sessionId: null }),
-}))
+export const useSessionStore = create<SessionState>()(
+  persist(
+    (set) => ({
+      sessionId: null,
+      setSessionId: (id) => set({ sessionId: id }),
+      clearSessionId: () => set({ sessionId: null }),
+    }),
+    {
+      name: 'session-storage',
+      storage: createJSONStorage(() => sessionStorage),
+    }
+  )
+)
