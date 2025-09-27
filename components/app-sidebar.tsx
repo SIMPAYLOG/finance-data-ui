@@ -38,12 +38,12 @@ const menuItems = [
     key: "user-comparison" as ActiveView,
     description: "개별 vs 집단 비교",
   },
-  // {
-  //   title: "설정",
-  //   icon: Settings,
-  //   key: "settings" as ActiveView,
-  //   description: "대시보드 커스터마이징",
-  // },
+  {
+    title: "설정",
+    icon: Settings,
+    key: "settings" as ActiveView,
+    description: "데이터 커스터마이징",
+  },
 ]
 
 export function AppSidebar({ activeView, setActiveView }: AppSidebarProps) {

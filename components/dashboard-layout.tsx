@@ -3,6 +3,7 @@
 import { MainDashboard } from "@/components/main-dashboard"
 import { UserComparison } from "@/components/user-comparison"
 import { UserAnalysis } from "@/components/user-analysis"
+import { DatasetDownload } from "@/components/dataset-download"
 import type { ActiveView } from "@/app/analyze/page"
 // import { AdvancedAnalytics } from "@/components/advanced-analytics"
 // import { DashboardSettings } from "@/components/dashboard-settings"
@@ -21,8 +22,8 @@ export function DashboardLayout({ activeView, filters }: DashboardLayoutProps) {
         return <UserComparison filters={filters} /> 
       case "analytics":
         return <UserAnalysis filters={filters} />
-      // case "settings":
-      //   return <DashboardSettings />
+      case "settings":
+        return <DatasetDownload filters={filters} />
       default:
         return <MainDashboard filters={filters} />
     }
