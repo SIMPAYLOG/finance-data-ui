@@ -39,10 +39,10 @@ const menuItems = [
     description: "개별 vs 집단 비교",
   },
   {
-    title: "설정",
+    title: "데이터 커스터마이징",
     icon: Settings,
     key: "settings" as ActiveView,
-    description: "데이터 커스터마이징",
+    description: "데이터 선택 및 저장",
   },
 ]
 

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useSessionStore } from "@/store/useSessionStore"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -37,17 +38,21 @@ const datasetOptions = [
     purpose: "세밀한 분석, 파이프라인 성능 테스트",
     effect: "실제 금융 로그처럼 보이는 데이터 제공",
     columns: [
-      { name: "uuid", type: "string", description: "거래 고유 식별자" },
+      { name: "transaction_id", type: "string", description: "거래 고유 식별자" },
       { name: "user_id", type: "string", description: "사용자 ID" },
       { name: "timestamp", type: "datetime", description: "거래 시간" },
       { name: "amount", type: "number", description: "거래 금액" },
-      { name: "txn_type", type: "string", description: "거래 유형" },
-      { name: "category", type: "string", description: "카테고리" },
-      { name: "merchant", type: "string", description: "가맹점명" },
+      { name: "transaction_type", type: "string", description: "거래 유형" },
+      { name: "detail_type", type: "string", description: "거래 유형 상세 정보" },
+      { name: "category", type: "string", description: "거래 종류 대분류" },
+      { name: "sub_category", type: "string", description: "거래 종류 소분류" },
+      { name: "counterparty", type: "string", description: "가맹점명" },
       { name: "location", type: "string", description: "거래 위치" },
       { name: "channel", type: "string", description: "거래 채널" },
       { name: "balance_before", type: "number", description: "거래 전 잔액" },
       { name: "balance_after", type: "number", description: "거래 후 잔액" },
+      { name: "description", type: "string", description: "결제 정보" },
+      { name: "memo", type: "string", description: "사용자 메모" },
     ],
     sampleData: [
       {
@@ -192,6 +197,7 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
   const [downloadFormat, setDownloadFormat] = useState("csv")
   const [selectedColumns, setSelectedColumns] = useState<string[]>([])
   const [customPreset, setCustomPreset] = useState("researcher")
+  const sessionId = useSessionStore((state) => state.sessionId)
 
   const currentDataset = datasetOptions.find((d) => d.id === selectedDataset)
 
@@ -213,14 +219,36 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
     setSelectedColumns(presets[preset as keyof typeof presets] || [])
   }
 
-  const handleDownload = () => {
-    if (selectedDataset === "custom" && selectedColumns.length === 0) {
-      alert("다운로드할 컬럼을 선택해주세요.")
-      return
+    // 다운로드 함수
+    // TODO: 선택된 컬럼을 다운하도록 생성
+
+  const handleDownload = async (format: "JSON" | "CSV") => {
+    if (!sessionId) return;
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/transactions/export?sessionId=${sessionId}&format=${format}`,
+        {
+          method: "GET",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("파일 다운로드 실패");
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `transactions_${sessionId}.${format.toLowerCase()}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert("다운로드 중 오류가 발생했습니다.");
     }
-    console.log("다운로드 시작:", { selectedDataset, downloadFormat, selectedColumns })
-    alert(`${currentDataset?.title || "커스텀"} 데이터를 ${downloadFormat.toUpperCase()} 형식으로 다운로드합니다.`)
-  }
+  };
 
   return (
     <div className="p-6 space-y-6 h-full overflow-auto">
@@ -505,7 +533,7 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
       </Tabs>
 
       {/* 다운로드 설정 및 버튼 */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
@@ -558,23 +586,22 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
             </div>
           </div>
 
-          {/* 다운로드 버튼 */}
-          <div className="flex justify-center pt-6">
-            <Button
-              onClick={handleDownload}
-              size="lg"
-              className="text-lg px-12 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <Download className="h-6 w-6 mr-3" />📥 데이터 다운로드
-              <Badge variant="secondary" className="ml-3 bg-white text-blue-600">
-                {selectedDataset === "custom"
-                  ? `${selectedColumns.length}개 컬럼`
-                  : currentDataset?.title || "데이터셋"}
-              </Badge>
-            </Button>
-          </div>
         </CardContent>
-      </Card>
+      </Card> */}
+
+      {/* 다운로드 버튼 */}
+      <div className="flex justify-center py-6">
+        <Button
+          onClick={() => handleDownload("CSV")} // ✅ 이렇게 화살표 함수로 감싸야 함
+          size="lg"
+          className="text-lg px-12 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+        >
+          <Download className="h-6 w-6 mr-3" />📥 데이터 다운로드
+          <Badge variant="secondary" className="ml-3 bg-white text-blue-600">
+            {selectedDataset === "custom" ? `${selectedColumns.length}개 컬럼` : currentDataset?.title || "데이터셋"}
+          </Badge>
+        </Button>
+      </div>
 
       {/* 이용 약관 */}
       <Card className="bg-gray-50 border-gray-200">

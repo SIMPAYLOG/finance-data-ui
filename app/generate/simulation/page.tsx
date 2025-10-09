@@ -35,33 +35,33 @@ function SimulationContent() {
   }, [progressMessages]);
 
   // 다운로드 함수
-  const handleDownload = async (format: "JSON" | "CSV") => {
-    if (!sessionId) return;
-    try {
-      const response = await fetch(
-        `http://localhost:8080/api/transactions/export?sessionId=${sessionId}&format=${format}`,
-        {
-          method: "GET",
-        }
-      );
-      if (!response.ok) {
-        throw new Error("파일 다운로드 실패");
-      }
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+  // const handleDownload = async (format: "JSON" | "CSV") => {
+  //   if (!sessionId) return;
+  //   try {
+  //     const response = await fetch(
+  //       `http://localhost:8080/api/transactions/export?sessionId=${sessionId}&format=${format}`,
+  //       {
+  //         method: "GET",
+  //       }
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error("파일 다운로드 실패");
+  //     }
+  //     const blob = await response.blob();
+  //     const url = window.URL.createObjectURL(blob);
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `transactions_${sessionId}.${format.toLowerCase()}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error(error);
-      alert("다운로드 중 오류가 발생했습니다.");
-    }
-  };
+  //     const a = document.createElement("a");
+  //     a.href = url;
+  //     a.download = `transactions_${sessionId}.${format.toLowerCase()}`;
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     a.remove();
+  //     window.URL.revokeObjectURL(url);
+  //   } catch (error) {
+  //     console.error(error);
+  //     alert("다운로드 중 오류가 발생했습니다.");
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -97,14 +97,14 @@ function SimulationContent() {
             </div>
 
             {isComplete && (
-              <div className="grid md:grid-cols-2 gap-4">
-                <Button className="w-full" onClick={() => handleDownload("JSON")}>
+              <div className="grid md:grid-cols-1 gap-4">
+                {/* <Button className="w-full" onClick={() => handleDownload("JSON")}>
                   <Download className="mr-2 h-4 w-4" /> JSON 다운로드
                 </Button>
                 <Button className="w-full" variant="outline" onClick={() => handleDownload("CSV")}>
                   <Download className="mr-2 h-4 w-4" /> CSV 다운로드
-                </Button>
-                <Button className="w-full" variant="secondary" onClick={() => {
+                </Button> */}
+                <Button className="w-full bg-black text-white font-bold hover:bg-gray-800" variant="secondary" onClick={() => {
                   router.push(`/analyze?durationStart=${durationStart}&durationEnd=${durationEnd}`);
                 }}>
                   분석 페이지로 이동
