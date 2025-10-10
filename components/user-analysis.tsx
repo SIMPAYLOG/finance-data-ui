@@ -42,62 +42,72 @@ export function UserAnalysis({ filters }: UserAnalysisProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const pageSize = 10
 
+  const [isUsersLoading, setIsUsersLoading] = useState(false);
+  const initialLoad = useRef(true);
+
   // --- 전체 유저 로드 ---
 const loadUsers = async () => {
-  if (!hasMore) return
-  try {
-    const res = await fetch(
-      `${API_BASE_URL}/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
-    )
+    // 👈 2. 로딩 중이거나 더 이상 데이터가 없으면 실행 방지
+    if (isUsersLoading || !hasMore) return;
 
-    if (!res.ok) {
-      throw new Error(`API Error: ${res.status} ${res.statusText}`)
-    }
+    setIsUsersLoading(true); // 👈 로딩 시작
 
-    const data = await res.json()
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
+      );
 
-    setUsers((prev) => {
-      const updatedUsers = [...prev, ...data.result.content]
-      if (page === 0 && updatedUsers.length > 0 && !selectedUser) {
-        handleSelectUser(updatedUsers[0])
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status} ${res.statusText}`);
       }
-      return updatedUsers
-    })
 
-    setHasMore(!data.result.last)
-    setPage((prev) => prev + 1)
-  } catch (error) {
-    console.error("❌ Failed to load users:", error)
+      const data = await res.json();
+      const newUsers = data.result.content;
 
-    // 실패했을 때도 데이터 형식을 유지하도록 빈 배열 반환
-    setUsers((prev) => {
-      const updatedUsers: typeof prev = [...prev] // 기존값 유지
+      // 👈 3. 핵심! 첫 페이지일 경우 덮어쓰기, 아닐 경우 추가하기
       if (page === 0) {
-        // 첫 페이지라면 빈 배열로 초기화
-        return []
+        setUsers(newUsers); // 데이터를 덮어씁니다.
+        // 첫 로드 시, 사용자가 아직 선택되지 않았다면 첫 번째 유저를 자동으로 선택합니다.
+        if (newUsers.length > 0 && !selectedUser) {
+          handleSelectUser(newUsers[0]);
+        }
+      } else {
+        // 중복 데이터가 들어가지 않도록 한 번 더 확인하는 로직 (선택 사항이지만 권장)
+        setUsers((prev) => {
+          const existingUserIds = new Set(prev.map((u) => u.userId));
+          const filteredNewUsers = newUsers.filter((u) => !existingUserIds.has(u.userId));
+          return [...prev, ...filteredNewUsers];
+        });
       }
-      return updatedUsers // 이후 페이지라면 그냥 기존 유지
-    })
 
-    setHasMore(false) // 더 이상 불러오지 않게 막음
-  }
-}
+      setHasMore(!data.result.last);
+      setPage((prev) => prev + 1);
+    } catch (error) {
+      console.error("❌ Failed to load users:", error);
+      setHasMore(false);
+    } finally {
+      setIsUsersLoading(false); // 👈 로딩 종료 (성공/실패 무관)
+    }
+  };
 
 
 
   useEffect(() => {
-    loadUsers()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId])
+    // sessionId가 있을 때만 유저 목록을 불러옵니다.
+    if (sessionId && initialLoad.current) {
+      initialLoad.current = false; 
+      loadUsers();
+    }
+  }, [sessionId]); // sessionId가 변경될 때 다시 로드
 
   // --- 무한 스크롤 ---
   const handleScroll = () => {
-    if (!listRef.current || !hasMore) return
-    const { scrollTop, scrollHeight, clientHeight } = listRef.current
+    if (!listRef.current || !hasMore || isUsersLoading) return; // 로딩 중일 때 스크롤 이벤트 방지
+    const { scrollTop, scrollHeight, clientHeight } = listRef.current;
     if (scrollTop + clientHeight >= scrollHeight - 10) {
-      loadUsers()
+      loadUsers();
     }
-  }
+  };
 
   // --- 사용자 선택 ---
   const handleSelectUser = (user: User) => {
