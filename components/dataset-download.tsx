@@ -225,6 +225,8 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
   const [selectedColumns, setSelectedColumns] = useState<string[]>([])
   const [customPreset, setCustomPreset] = useState("researcher")
   const sessionId = useSessionStore((state) => state.sessionId)
+  const start = filters?.dateRange?.start
+  const end = filters?.dateRange?.end
 
   const currentDataset = datasetOptions.find((d) => d.id === selectedDataset)
 
@@ -271,8 +273,8 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
       columns,
       isAggregated,
       isMasked,
-      durationStart: "2025-10-02",
-      durationEnd: "2025-10-09",
+      durationStart: start,
+      durationEnd: end,
     };
 
     try {
