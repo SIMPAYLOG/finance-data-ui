@@ -1,7 +1,7 @@
 "use client"
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Suspense, useRef } from 'react';
+import { Suspense, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useValidatedWebSocket } from '@/hooks/use-validated-websocket';
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,15 @@ function SimulationContent() {
   );
 
   const isComplete = socketStatus === "연결 종료";
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [progressMessages]);
 
   // 다운로드 함수
   const handleDownload = async (format: "JSON" | "CSV") => {
