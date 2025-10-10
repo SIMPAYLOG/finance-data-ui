@@ -93,6 +93,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const pageSize = 10
 
+  const [isUsersLoading, setIsUsersLoading] = useState(false);
   const start = filters?.dateRange?.start
   const end = filters?.dateRange?.end
   const transactionType: "WITHDRAW" | "DEPOSIT" | "all" = filters?.transactionType ?? "all"
@@ -103,22 +104,49 @@ export function UserComparison({ filters }: UserComparisonProps) {
   const pct = (num: number, den: number) => (den === 0 ? 0 : (num / den) * 100)
 
   // --- 전체 유저 로드 ---
-  const loadUsers = async () => {
-    if (!hasMore) return
-    const res = await fetch(
-      `${API_BASE_URL}/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
-    )
-    const data = await res.json()
-    setUsers((prev) => {
-      const updatedUsers = [...prev, ...data.result.content]
-      if (page === 0 && updatedUsers.length > 0 && !selectedUser) {
-        handleSelectUser(updatedUsers[0])
+const loadUsers = async () => {
+    // 2. 로딩 중이거나 더 이상 데이터가 없으면 실행 방지
+    if (isUsersLoading || !hasMore) return;
+
+    setIsUsersLoading(true); // 로딩 시작
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/users/list?sessionId=${sessionId}&page=${page}&size=${pageSize}`
+      );
+
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status} ${res.statusText}`);
       }
-      return updatedUsers
-    })
-    setHasMore(!data.result.last)
-    setPage((prev) => prev + 1)
-  }
+
+      const data = await res.json();
+      const newUsers = data.result.content;
+
+      // 3. 핵심! 첫 페이지일 경우 덮어쓰기, 아닐 경우 추가하기
+      if (page === 0) {
+        setUsers(newUsers); // 데이터를 덮어씁니다.
+        // 첫 로드 시, 사용자가 아직 선택되지 않았다면 첫 번째 유저를 자동으로 선택합니다.
+        if (newUsers.length > 0 && !selectedUser) {
+          handleSelectUser(newUsers[0]);
+        }
+      } else {
+        // 중복 데이터가 들어가지 않도록 한 번 더 확인하는 로직 (선택 사항이지만 권장)
+        setUsers((prev) => {
+          const existingUserIds = new Set(prev.map((u) => u.userId));
+          const filteredNewUsers = newUsers.filter((u) => !existingUserIds.has(u.userId));
+          return [...prev, ...filteredNewUsers];
+        });
+      }
+
+      setHasMore(!data.result.last);
+      setPage((prev) => prev + 1);
+    } catch (error) {
+      console.error("Failed to load users:", error);
+      setHasMore(false);
+    } finally {
+      setIsUsersLoading(false); // 로딩 종료 (성공/실패 무관)
+    }
+  };
 
   const loadUserCount = async () => {
     const res = await fetch(
@@ -444,7 +472,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
                     className="p-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => handleSelectUser(user)}
                   >
-                    {user.name} ({user.occupationName})
+                    {user.name} ({user.userId})
                   </div>
                 ))}
                 {!hasMore && (
