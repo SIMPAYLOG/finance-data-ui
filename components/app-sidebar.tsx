@@ -1,6 +1,6 @@
 "use client"
 
-import { BarChart3, Home, Users, TrendingUp, Settings } from "lucide-react"
+import { BarChart3, Home, Users, TrendingUp, Download } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -40,7 +40,7 @@ const menuItems = [
   },
   {
     title: "데이터 커스터마이징",
-    icon: Settings,
+    icon: Download,
     key: "settings" as ActiveView,
     description: "데이터 선택 및 저장",
   },
