@@ -144,7 +144,7 @@ const loadUsers = async () => {
                 className="w-full border rounded-md p-2 text-left bg-white"
                 onClick={() => setIsOpen((prev) => !prev)}
               >
-                {selectedUser ? `${selectedUser.name}` : "사용자 선택"}
+                {selectedUser ? `${selectedUser.name} (${selectedUser.userId})` : "사용자 선택"}
               </button>
 
               {isOpen && (
@@ -159,7 +159,7 @@ const loadUsers = async () => {
                       className="p-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => handleSelectUser(user)}
                     >
-                      {user.name} ({user.occupationName})
+                      {user.name} ({user.userId})
                     </div>
                   ))}
                   {!hasMore && (
