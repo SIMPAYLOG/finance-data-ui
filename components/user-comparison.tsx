@@ -429,7 +429,7 @@ export function UserComparison({ filters }: UserComparisonProps) {
               className="w-full border rounded-md p-2 text-left bg-white"
               onClick={() => setIsOpen((prev) => !prev)}
             >
-              {selectedUser ? `${selectedUser.name}` : "사용자 선택"}
+              {selectedUser ? `${selectedUser.name} (${selectedUser.userId})` : "사용자 선택"}
             </button>
 
             {isOpen && (
