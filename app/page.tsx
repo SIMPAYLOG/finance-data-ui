@@ -80,7 +80,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Demo Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
@@ -88,43 +87,37 @@ export default function Home() {
             <p className="text-gray-600">실제 생성되는 데이터의 예시를 확인해보세요</p>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-6">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">사용자</th>
-                    <th className="text-left py-2">날짜</th>
-                    <th className="text-left py-2">카테고리</th>
-                    <th className="text-left py-2">금액</th>
-                    <th className="text-left py-2">소비성향</th>
+          <div className="bg-gray-50 rounded-lg p-6 overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-100">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">날짜</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">카테고리</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">세부내역</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">채널</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">금액</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {[
+                  { date: "2025-07-24", category: "식료품 및 비주류 음료", detail: "부평 이슬상점", channel: "CARD", amount: "-17,500원" },
+                  { date: "2025-07-24", category: "교통", detail: "인천교통공사", channel: "CARD", amount: "-2,900원" },
+                  { date: "2025-07-25", category: "의류 및 신발", detail: "행복샵", channel: "CARD", amount: "-27,900원" },
+                  { date: "2025-07-25", category: "", detail: "급여", channel: "TRANSFER", amount: "+2,920,000원" },
+                  { date: "2025-07-26", category: "주류 및 담배", detail: "모아주류", channel: "CARD", amount: "-47,000원" },
+                ].map((row, i) => (
+                  <tr key={i} className="hover:bg-gray-100 transition-colors">
+                    <td className="py-3 px-4 text-gray-700">{row.date}</td>
+                    <td className="py-3 px-4 text-gray-700">{row.category || <span className="text-gray-400">—</span>}</td>
+                    <td className="py-3 px-4 text-gray-700">{row.detail}</td>
+                    <td className="py-3 px-4 text-gray-700">{row.channel}</td>
+                    <td className={`py-3 px-4 text-right font-medium ${row.amount.startsWith("-") ? "text-red-500" : "text-blue-600"}`}>
+                      {row.amount}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b">
-                    <td className="py-2">김민수 (28세, 남)</td>
-                    <td className="py-2">2024-01-15</td>
-                    <td className="py-2">식비</td>
-                    <td className="py-2">15,000원</td>
-                    <td className="py-2">절약형</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-2">이지영 (32세, 여)</td>
-                    <td className="py-2">2024-01-15</td>
-                    <td className="py-2">쇼핑</td>
-                    <td className="py-2">85,000원</td>
-                    <td className="py-2">소비형</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2">박준호 (25세, 남)</td>
-                    <td className="py-2">2024-01-14</td>
-                    <td className="py-2">교통</td>
-                    <td className="py-2">3,500원</td>
-                    <td className="py-2">중립형</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>

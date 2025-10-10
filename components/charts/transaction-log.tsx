@@ -35,13 +35,14 @@ function TransactionItem({ tx }: { tx: any }) {
   const amountPrefix = isWithdraw ? "-" : "+"
   const categoryName = categoryMap[tx.category] ?? tx.category
   return (
-    <div className="grid grid-cols-4 items-center p-3 border-b text-sm">
+    <div className="grid grid-cols-5 items-center p-3 border-b text-sm">
       {/* 날짜 */}
       <div className="text-gray-600">
         {format(new Date(tx.timestamp), "yyyy-MM-dd")}
       </div>
-      <div className="text-gray-800">{tx.description}</div>
       <div className="text-gray-800">{categoryName}</div>
+      <div className="text-gray-800">{tx.description}</div>
+      <div className="text-gray-800">{tx.channel}</div>
       <div className={`font-semibold text-right ${amountColor}`}>
         {amountPrefix}
         {tx.amount.toLocaleString()}원
@@ -113,10 +114,11 @@ export function TransactionLog({ filters, userId, refreshKey }: TransactionLogPr
     return (
       <div>
         {/* 헤더 */}
-        <div className="grid grid-cols-4 p-4 font-semibold items-center text-xs text-gray-500 border-b">
+        <div className="grid grid-cols-5 p-4 font-semibold items-center text-xs text-gray-500 border-b">
           <div>날짜</div>
-          <div>세부내역</div>
           <div>카테고리</div>
+          <div>세부내역</div>
+          <div>채널</div>
           <div className="text-right">금액</div>
         </div>
 

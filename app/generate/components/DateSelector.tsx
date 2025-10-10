@@ -4,7 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarIcon } from "lucide-react";
-import { format, addYears } from "date-fns";
+import { format, addYears, startOfDay } from "date-fns";
 import { ko } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -125,7 +125,10 @@ export default function DateSelector({
                     if (!formData.durationStart) return true; // 시작 날짜 없으면 비활성화
                     const oneYearAfterStart = addYears(formData.durationStart, 1);
                     const effectiveEndDate = durationEndConstraint < oneYearAfterStart ? durationEndConstraint : oneYearAfterStart;
-                    return date > effectiveEndDate || date < formData.durationStart;
+                    return (
+                        startOfDay(date) > startOfDay(effectiveEndDate) ||
+                        startOfDay(date) < startOfDay(formData.durationStart)
+                    );
                   }}
                   locale={ko}
                   captionLayout="dropdown"
