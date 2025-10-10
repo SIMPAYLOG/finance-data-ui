@@ -443,13 +443,13 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
                         </TableBody>
                       </Table>
                     </div>
-                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                    {/* <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                       <p className="text-sm text-blue-700">
                         📊 실제 데이터셋:{" "}
                         <strong>{Math.floor(Math.random() * 50000 + 10000).toLocaleString()}건</strong> | 예상 크기:{" "}
                         <strong>~{Math.floor(Math.random() * 20 + 5)}MB</strong>
                       </p>
-                    </div>
+                    </div> */}
                   </CardContent>
                 </Card>
               </CardContent>
