@@ -25,6 +25,43 @@ import {
   Filter,
 } from "lucide-react"
 
+const SCHEMAS = {
+  raw: [
+    "transactionId",
+    "userId",
+    "timestamp",
+    "transactionType",
+    "detailType",
+    "category",
+    "subcategory",
+    "counterparty",
+    "amount",
+    "channel",
+    "balanceBefore",
+    "balanceAfter",
+    "description",
+    "memo"
+  ],
+  aggregated: [
+    "userId",
+    "period",
+    "totalSpent",
+    "avgTxn",
+    "foodRatio",
+    "transportRatio",
+    "leisureRatio",
+    "imcomeVsSepnding",
+  ],
+  masked: [ 
+    "transactionId",
+    "userId",
+    "timestamp",
+    "amount",
+    "category",
+    "channel",
+  ],
+};
+
 const datasetOptions = [
   {
     id: "raw",
@@ -47,7 +84,6 @@ const datasetOptions = [
       { name: "category", type: "string", description: "거래 종류 대분류" },
       { name: "sub_category", type: "string", description: "거래 종류 소분류" },
       { name: "counterparty", type: "string", description: "가맹점명" },
-      { name: "location", type: "string", description: "거래 위치" },
       { name: "channel", type: "string", description: "거래 채널" },
       { name: "balance_before", type: "number", description: "거래 전 잔액" },
       { name: "balance_after", type: "number", description: "거래 후 잔액" },
@@ -56,7 +92,7 @@ const datasetOptions = [
     ],
     sampleData: [
       {
-        uuid: "TX20250901A",
+        transaction_id: "TX20250901A",
         user_id: "U100",
         timestamp: "2025-09-01 08:30:00",
         transaction_type: "PAYMENT",
@@ -64,12 +100,11 @@ const datasetOptions = [
         balance_before: "1,200,000",
         balance_after: "1,194,800",
         category: "FOOD/CAFE",
-        merchant: "강남그린카페",
-        location: "Seoul-Gangnam",
+        counterparty: "강남그린카페",
         channel: "POS",
       },
       {
-        uuid: "TX20250901B",
+        transaction_id: "TX20250901B",
         user_id: "U100",
         timestamp: "2025-09-01 12:10:00",
         transaction_type: "PAYMENT",
@@ -77,12 +112,11 @@ const datasetOptions = [
         balance_before: "1,194,800",
         balance_after: "1,193,450",
         category: "TRANSPORT",
-        merchant: "서울버스123",
-        location: "Seoul-Jongno",
+        counterparty: "서울버스123",
         channel: "MOBILE",
       },
       {
-        uuid: "TX20250901C",
+        transaction_id: "TX20250901C",
         user_id: "U101",
         timestamp: "2025-09-01 14:25:00",
         transaction_type: "DEPOSIT",
@@ -90,8 +124,7 @@ const datasetOptions = [
         balance_before: "850,000",
         balance_after: "3,350,000",
         category: "SALARY",
-        merchant: "ABC회사",
-        location: "Seoul-Jung",
+        counterparty: "ABC회사",
         channel: "BANK",
       },
     ],
@@ -152,36 +185,30 @@ const datasetOptions = [
     purpose: "보안·현실감 강화, 공개 공유",
     effect: '"실제처럼 안전하게 다룬다"는 메시지 제공',
     columns: [
-      { name: "uuid", type: "string", description: "거래 ID (마스킹)" },
+      { name: "transaction_id", type: "string", description: "거래 ID (마스킹)" },
       { name: "user_id", type: "string", description: "사용자 ID (마스킹)" },
       { name: "timestamp", type: "datetime", description: "거래 시간" },
       { name: "amount", type: "number", description: "거래 금액" },
       { name: "category", type: "string", description: "카테고리" },
-      { name: "merchant_category", type: "string", description: "가맹점 카테고리만" },
-      { name: "location", type: "string", description: "도시 단위만" },
       { name: "channel", type: "string", description: "거래 채널" },
     ],
     sampleData: [
       {
-        uuid: "TX***901A",
+        transaction_id: "TX***901A",
         user_id: "U***",
         timestamp: "2025-09-01 08:30:00",
         transaction_type: "PAYMENT",
         amount: "5,200",
         category: "FOOD/CAFE",
-        merchant_category: "카페",
-        location: "Seoul",
         channel: "POS",
       },
       {
-        uuid: "TX***901B",
+        transaction_id: "TX***901B",
         user_id: "U***",
         timestamp: "2025-09-01 12:10:00",
         transaction_type: "PAYMENT",
         amount: "1,350",
         category: "TRANSPORT",
-        merchant_category: "대중교통",
-        location: "Seoul",
         channel: "MOBILE",
       },
     ],
@@ -211,35 +238,60 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
     setCustomPreset(preset)
     const presets = {
       researcher: ["timestamp", "amount", "category"],
-      business: ["user_id", "channel", "location", "amount"],
-      marketing: ["category", "merchant_category", "amount", "timestamp"],
+      business: ["user_id", "channel", "amount"],
+      marketing: ["category", "sub_category", "amount", "timestamp"],
       policy: ["period", "total_spent", "income_vs_spending"],
       fintech: ["transaction_type", "channel", "amount", "balance_after"],
     }
     setSelectedColumns(presets[preset as keyof typeof presets] || [])
   }
 
-    // 다운로드 함수
-    // TODO: 선택된 컬럼을 다운하도록 생성
+  function snakeToCamel(s: string) {
+    return s.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+  } 
 
   const handleDownload = async (format: "JSON" | "CSV") => {
     if (!sessionId) return;
+
+    // 탭 상태에 따라 구분
+    const isAggregated = selectedDataset === "aggregated";
+    const isMasked = selectedDataset === "masked";
+
+    
+    let columns;
+    if (selectedDataset === "custom") {
+      columns = selectedColumns.map(snakeToCamel);
+    } else {
+      columns = SCHEMAS[selectedDataset as keyof typeof SCHEMAS];
+    }
+    
+    const requestBody = {
+      sessionId: sessionId,
+      format,
+      columns,
+      isAggregated,
+      isMasked,
+      durationStart: "2025-10-02",
+      durationEnd: "2025-10-09",
+    };
+
     try {
       const response = await fetch(
         `http://localhost:8080/api/transactions/export?sessionId=${sessionId}&format=${format}`,
         {
-          method: "GET",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
         }
       );
-      if (!response.ok) {
-        throw new Error("파일 다운로드 실패");
-      }
+      if (!response.ok) throw new Error("파일 다운로드 실패");
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = `transactions_${sessionId}.${format.toLowerCase()}`;
+      a.download = `transactions_${selectedDataset}.${format.toLowerCase()}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -249,6 +301,7 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
       alert("다운로드 중 오류가 발생했습니다.");
     }
   };
+
 
   return (
     <div className="p-6 space-y-6 h-full overflow-auto">
@@ -434,7 +487,7 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
                       { id: "researcher", name: "연구자용", desc: "시간, 금액, 카테고리", icon: "🔬" },
                       { id: "business", name: "기업용", desc: "사용자, 채널, 위치, 금액", icon: "🏢" },
                       { id: "marketing", name: "마케팅용", desc: "카테고리, 가맹점, 금액", icon: "📈" },
-                      { id: "policy", name: "정책연구용", desc: "기간, 총지출, 소득비율", icon: "🏛️" },
+                      // { id: "policy", name: "정책연구용", desc: "기간, 총지출, 소득비율", icon: "🏛️" },
                       { id: "fintech", name: "핀테크용", desc: "거래유형, 채널, 잔액", icon: "💳" },
                     ].map((preset) => (
                       <Button
@@ -465,7 +518,7 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* 모든 데이터셋의 컬럼을 합쳐서 표시 */}
-                    {[...datasetOptions[0].columns, ...datasetOptions[1].columns, ...datasetOptions[2].columns]
+                    {[...datasetOptions[0].columns, ...datasetOptions[2].columns]
                       .filter((col, index, self) => self.findIndex((c) => c.name === col.name) === index)
                       .map((column) => (
                         <div
@@ -532,71 +585,14 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
         </TabsContent>
       </Tabs>
 
-      {/* 다운로드 설정 및 버튼 */}
-      {/* <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            다운로드 설정
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">파일 형식</label>
-              <Select value={downloadFormat} onValueChange={setDownloadFormat}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="csv">CSV</SelectItem>
-                  <SelectItem value="json">JSON</SelectItem>
-                  <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
-                  <SelectItem value="parquet">Parquet</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">데이터 크기</label>
-              <Select defaultValue="full">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sample">샘플 (1,000건)</SelectItem>
-                  <SelectItem value="medium">중간 (10,000건)</SelectItem>
-                  <SelectItem value="full">전체 데이터</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">압축 형식</label>
-              <Select defaultValue="zip">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">압축 없음</SelectItem>
-                  <SelectItem value="zip">ZIP</SelectItem>
-                  <SelectItem value="gzip">GZIP</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-        </CardContent>
-      </Card> */}
-
       {/* 다운로드 버튼 */}
       <div className="flex justify-center py-6">
         <Button
           onClick={() => handleDownload("CSV")} // ✅ 이렇게 화살표 함수로 감싸야 함
           size="lg"
-          className="text-lg px-12 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-        >
-          <Download className="h-6 w-6 mr-3" />📥 데이터 다운로드
+          className="text-lg px-12 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+            데이터 다운로드
+          <Download className="h-6 w-6 mr-3" />📥 
           <Badge variant="secondary" className="ml-3 bg-white text-blue-600">
             {selectedDataset === "custom" ? `${selectedColumns.length}개 컬럼` : currentDataset?.title || "데이터셋"}
           </Badge>
