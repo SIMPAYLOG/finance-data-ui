@@ -47,10 +47,10 @@ export function UserAnalysis({ filters }: UserAnalysisProps) {
 
   // --- 전체 유저 로드 ---
 const loadUsers = async () => {
-    // 👈 2. 로딩 중이거나 더 이상 데이터가 없으면 실행 방지
+    // 2. 로딩 중이거나 더 이상 데이터가 없으면 실행 방지
     if (isUsersLoading || !hasMore) return;
 
-    setIsUsersLoading(true); // 👈 로딩 시작
+    setIsUsersLoading(true); // 로딩 시작
 
     try {
       const res = await fetch(
@@ -64,7 +64,7 @@ const loadUsers = async () => {
       const data = await res.json();
       const newUsers = data.result.content;
 
-      // 👈 3. 핵심! 첫 페이지일 경우 덮어쓰기, 아닐 경우 추가하기
+      // 3. 핵심! 첫 페이지일 경우 덮어쓰기, 아닐 경우 추가하기
       if (page === 0) {
         setUsers(newUsers); // 데이터를 덮어씁니다.
         // 첫 로드 시, 사용자가 아직 선택되지 않았다면 첫 번째 유저를 자동으로 선택합니다.
@@ -83,10 +83,10 @@ const loadUsers = async () => {
       setHasMore(!data.result.last);
       setPage((prev) => prev + 1);
     } catch (error) {
-      console.error("❌ Failed to load users:", error);
+      console.error("Failed to load users:", error);
       setHasMore(false);
     } finally {
-      setIsUsersLoading(false); // 👈 로딩 종료 (성공/실패 무관)
+      setIsUsersLoading(false); // 로딩 종료 (성공/실패 무관)
     }
   };
 
