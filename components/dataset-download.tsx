@@ -61,14 +61,23 @@ const SCHEMAS = {
     "educationRatio",
     "otherGoodsServicesRatio",
     "imcomeVsSepnding",
+    "top3Categories"
   ],
   masked: [ 
     "transactionId",
     "userId",
     "timestamp",
-    "amount",
+    "transactionType",
+    "detailType",
     "category",
+    "subcategory",
+    "counterparty",
+    "amount",
     "channel",
+    "balanceBefore",
+    "balanceAfter",
+    "description",
+    "memo"
   ],
 };
 
@@ -98,46 +107,74 @@ const datasetOptions = [
       { name: "balance_before", type: "number", description: "거래 전 잔액" },
       { name: "balance_after", type: "number", description: "거래 후 잔액" },
       { name: "description", type: "string", description: "결제 정보" },
-      { name: "memo", type: "string", description: "사용자 메모" },
+      { name: "memo", type: "string", description: "사용자 메모" }
     ],
     sampleData: [
-      {
-        transaction_id: "TX20250901A",
-        user_id: "U100",
-        timestamp: "2025-09-01 08:30:00",
-        transaction_type: "PAYMENT",
-        amount: "5,200",
-        balance_before: "1,200,000",
-        balance_after: "1,194,800",
-        category: "FOOD/CAFE",
-        counterparty: "강남그린카페",
-        channel: "POS",
-      },
-      {
-        transaction_id: "TX20250901B",
-        user_id: "U100",
-        timestamp: "2025-09-01 12:10:00",
-        transaction_type: "PAYMENT",
-        amount: "1,350",
-        balance_before: "1,194,800",
-        balance_after: "1,193,450",
-        category: "TRANSPORT",
-        counterparty: "서울버스123",
-        channel: "MOBILE",
-      },
-      {
-        transaction_id: "TX20250901C",
-        user_id: "U101",
-        timestamp: "2025-09-01 14:25:00",
-        transaction_type: "DEPOSIT",
-        amount: "2,500,000",
-        balance_before: "850,000",
-        balance_after: "3,350,000",
-        category: "SALARY",
-        counterparty: "ABC회사",
-        channel: "BANK",
-      },
-    ],
+  {
+    "transaction_id": "TX-a1c678d1",
+    "user_id": "U-154",
+    "timestamp": "2025-10-29 22:53:00",
+    "transaction_type": "WITHDRAW",
+    "detail_type": "CARD_PAYMENT",
+    "amount": "8,000",
+    "balance_before": "12,715,837",
+    "balance_after": "12,707,837",
+    "category": "transportation",
+    "subcategory": "transport",
+    "counterparty": "해솔 공유모빌리티",
+    "channel": "CARD",
+    "description": "해솔 공유모빌리티",
+    "memo": "공유 자전거/킥보드"
+  },
+  {
+    "transaction_id": "TX-1a79a779",
+    "user_id": "U-154",
+    "timestamp": "2025-10-30 04:48:00",
+    "transaction_type": "WITHDRAW",
+    "detail_type": "FEE",
+    "amount": "1,900",
+    "balance_before": "12,683,037",
+    "balance_after": "12,681,137",
+    "category": "otherGoodsServices",
+    "subcategory": "miscellaneous",
+    "counterparty": "KB국민은행",
+    "channel": "SYSTEM",
+    "description": "KB국민은행",
+    "memo": "은행 수수료"
+  },
+  {
+    "transaction_id": "TX-bfcb5346",
+    "user_id": "U-155",
+    "timestamp": "2025-10-08 03:06:00",
+    "transaction_type": "WITHDRAW",
+    "detail_type": "CARD_PAYMENT",
+    "amount": "14,300",
+    "balance_before": "3,433,428",
+    "balance_after": "3,419,128",
+    "category": "groceriesNonAlcoholicBeverages",
+    "subcategory": "nonAlcoholicBeverages",
+    "counterparty": "이마트 도남동",
+    "channel": "CARD",
+    "description": "이마트 도남동",
+    "memo": "요거트, 우유, 유제품 묶음"
+  },
+  {
+    "transaction_id": "TX-52e13055",
+    "user_id": "U-155",
+    "timestamp": "2025-10-08 04:31:00",
+    "transaction_type": "WITHDRAW",
+    "detail_type": "CARD_PAYMENT",
+    "amount": "112,400",
+    "balance_before": "3,419,128",
+    "balance_after": "3,306,728",
+    "category": "education",
+    "subcategory": "learning",
+    "counterparty": "도남동 별학원",
+    "channel": "CARD",
+    "description": "도남동 별학원",
+    "memo": "학원 수강"
+  }
+],
   },
   {
     id: "aggregated",
@@ -151,20 +188,32 @@ const datasetOptions = [
     purpose: "지표 확인, 정책/연구용 시뮬레이션",
     effect: "소득·연령·성향별 소비 구조 비교 용이",
     columns: [
-      { name: "user_id", type: "string", description: "사용자 ID" },
-      { name: "period", type: "string", description: "집계 기간" },
-      { name: "total_spent", type: "number", description: "총 지출액" },
-      { name: "avg_transaction", type: "number", description: "평균 거래액" },
-      { name: "category_ratios", type: "object", description: "카테고리별 비율" },
-      { name: "income_vs_spending", type: "number", description: "소득 대비 지출 비율" },
-    ],
+  { name: "user_id", type: "string", description: "사용자 식별자" },
+  { name: "period", type: "string", description: "집계 기간(예: YYYY-MM 또는 날짜 범위)" },
+  { name: "total_spent", type: "number", description: "기간 내 총 지출액" },
+  { name: "avg_transaction", type: "number", description: "거래 1건당 평균 지출액" },
+  { name: "income_vs_spending", type: "number", description: "소득 대비 지출 비율" },
+  { name: "top_3_categories", type: "string", description: "상위 카테고리 TOP 3" },
+  { name: "food_ratio", type: "number", description: "식료품/외식 지출 비율" },
+  { name: "transport_ratio", type: "number", description: "교통 지출 비율" },
+  { name: "leisure_ratio", type: "number", description: "여가/문화 지출 비율" },
+  { name: "groceries_non_alcoholic_beverages_ratio", type: "number", description: "식료품·비주류 음료 지출 비율" },
+  { name: "alcoholic_beverages_tobacco_ratio", type: "number", description: "주류·담배 지출 비율" },
+  { name: "clothing_footwear_ratio", type: "number", description: "의류·신발 지출 비율" },
+  { name: "housing_utilities_fuel_ratio", type: "number", description: "주거·수도·광열 지출 비율" },
+  { name: "household_goods_services_ratio", type: "number", description: "가정용품·가사서비스 지출 비율" },
+  { name: "health_ratio", type: "number", description: "보건 지출 비율" },
+  { name: "communication_ratio", type: "number", description: "통신 지출 비율" },
+  { name: "education_ratio", type: "number", description: "교육 지출 비율" },
+  { name: "other_goods_services_ratio", type: "number", description: "기타 상품·서비스 지출 비율" }
+],
     sampleData: [
       {
         user_id: "U100",
         period: "2025-09",
         total_spent: "2,481,894",
         avg_txn: "26,335",
-        top3_categories: "LODGING, TRANSPORT, MEDICAL",
+        top3_categories: "transportation, groceriesNonAlcoholicBeverages, otherGoodsServices",
         food_ratio: "0.27",
         transport_ratio: "0.11",
         leisure_ratio: "0.17",
@@ -175,7 +224,7 @@ const datasetOptions = [
         period: "2025-09",
         total_spent: "1,701,883",
         avg_txn: "53,273",
-        top3_categories: "UTILITY, LODGING, TRANSPORT",
+        top3_categories: "otherGoodsServices, transportation, groceriesNonAlcoholicBeverages",
         food_ratio: "0.34",
         transport_ratio: "0.14",
         leisure_ratio: "0.11",
@@ -198,30 +247,84 @@ const datasetOptions = [
       { name: "transaction_id", type: "string", description: "거래 ID (마스킹)" },
       { name: "user_id", type: "string", description: "사용자 ID (마스킹)" },
       { name: "timestamp", type: "datetime", description: "거래 시간" },
+      { name: "transaction_type", type: "string", description: "거래 유형" },
+      { name: "detail_type", type: "string", description: "거래 유형 상세 정보" },
       { name: "amount", type: "number", description: "거래 금액" },
-      { name: "category", type: "string", description: "카테고리" },
+      { name: "balance_before", type: "number", description: "거래 전 잔액" },
+      { name: "balance_after", type: "number", description: "거래 후 잔액" },
+      { name: "category", type: "string", description: "거래 종류 대분류" },
+      { name: "sub_category", type: "string", description: "거래 종류 소분류" },
+      { name: "counterparty", type: "string", description: "가맹점명" },
       { name: "channel", type: "string", description: "거래 채널" },
+      { name: "description", type: "string", description: "결제 정보" },
+      { name: "memo", type: "string", description: "사용자 메모" }
     ],
     sampleData: [
-      {
-        transaction_id: "TX***901A",
-        user_id: "U***",
-        timestamp: "2025-09-01 08:30:00",
-        transaction_type: "PAYMENT",
-        amount: "5,200",
-        category: "FOOD/CAFE",
-        channel: "POS",
-      },
-      {
-        transaction_id: "TX***901B",
-        user_id: "U***",
-        timestamp: "2025-09-01 12:10:00",
-        transaction_type: "PAYMENT",
-        amount: "1,350",
-        category: "TRANSPORT",
-        channel: "MOBILE",
-      },
-    ],
+  {
+    "transaction_id": "TX-*******1",
+    "user_id": "U-*54",
+    "timestamp": "2025-10-29 22:53:00",
+    "transaction_type": "WITHDRAW",
+    "detail_type": "CARD_PAYMENT",
+    "amount": "8,000",
+    "balance_before": "12,715,837",
+    "balance_after": "12,707,837",
+    "category": "transportation",
+    "subcategory": "transport",
+    "counterparty": "해솔 공유모빌리티",
+    "channel": "CARD",
+    "description": "해솔 공유모빌리티",
+    "memo": "공유 자전거/킥보드"
+  },
+  {
+    "transaction_id": "TX-*******9",
+    "user_id": "U-*54",
+    "timestamp": "2025-10-30 04:48:00",
+    "transaction_type": "WITHDRAW",
+    "detail_type": "FEE",
+    "amount": "1,900",
+    "balance_before": "12,683,037",
+    "balance_after": "12,681,137",
+    "category": "otherGoodsServices",
+    "subcategory": "miscellaneous",
+    "counterparty": "KB국민은행",
+    "channel": "SYSTEM",
+    "description": "KB국민은행",
+    "memo": "은행 수수료"
+  },
+  {
+    "transaction_id": "TX-*******6",
+    "user_id": "U-*55",
+    "timestamp": "2025-10-08 03:06:00",
+    "transaction_type": "WITHDRAW",
+    "detail_type": "CARD_PAYMENT",
+    "amount": "14,300",
+    "balance_before": "3,433,428",
+    "balance_after": "3,419,128",
+    "category": "groceriesNonAlcoholicBeverages",
+    "subcategory": "nonAlcoholicBeverages",
+    "counterparty": "이마트 도남동",
+    "channel": "CARD",
+    "description": "이마트 도남동",
+    "memo": "요거트, 우유, 유제품 묶음"
+  },
+  {
+    "transaction_id": "TX-*******5",
+    "user_id": "U-*55",
+    "timestamp": "2025-10-08 04:31:00",
+    "transaction_type": "WITHDRAW",
+    "detail_type": "CARD_PAYMENT",
+    "amount": "112,400",
+    "balance_before": "3,419,128",
+    "balance_after": "3,306,728",
+    "category": "education",
+    "subcategory": "learning",
+    "counterparty": "도남동 별학원",
+    "channel": "CARD",
+    "description": "도남동 별학원",
+    "memo": "학원 수강"
+  }
+],
   },
 ]
 
@@ -249,11 +352,10 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
   const selectPreset = (preset: string) => {
     setCustomPreset(preset)
     const presets = {
-      researcher: ["timestamp", "amount", "category"],
-      business: ["user_id", "channel", "amount"],
-      marketing: ["category", "sub_category", "amount", "timestamp"],
-      policy: ["period", "total_spent", "income_vs_spending"],
-      fintech: ["transaction_type", "channel", "amount", "balance_after"],
+      researcher: ["user_id", "timestamp", "amount", "category", "sub_category", "channel"],
+      business: ["transaction_id", "timestamp", "user_id", "amount", "channel", "counterparty"],
+      marketing: ["user_id", "timestamp", "category", "sub_category", "amount", "counterparty"],
+      fintech: ["timestamp", "amount", "transaction_type", "channel", "balance_after", "description"]
     }
     setSelectedColumns(presets[preset as keyof typeof presets] || [])
   }
@@ -499,7 +601,6 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
                       { id: "researcher", name: "연구자용", desc: "시간, 금액, 카테고리", icon: "🔬" },
                       { id: "business", name: "기업용", desc: "사용자, 채널, 위치, 금액", icon: "🏢" },
                       { id: "marketing", name: "마케팅용", desc: "카테고리, 가맹점, 금액", icon: "📈" },
-                      // { id: "policy", name: "정책연구용", desc: "기간, 총지출, 소득비율", icon: "🏛️" },
                       { id: "fintech", name: "핀테크용", desc: "거래유형, 채널, 잔액", icon: "💳" },
                     ].map((preset) => (
                       <Button
@@ -585,8 +686,7 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
                     </div>
                     <div className="p-3 bg-green-50 rounded-lg">
                       <p className="text-sm text-green-700">
-                        ✅ {selectedColumns.length}개 컬럼이 선택되었습니다. 예상 파일 크기:{" "}
-                        <strong>~{Math.floor(selectedColumns.length * 2.5)}MB</strong>
+                        ✅ {selectedColumns.length}개 컬럼이 선택되었습니다.
                       </p>
                     </div>
                   </CardContent>
@@ -620,7 +720,6 @@ export function DatasetDownload({filters }: DatasetDownloadProps) {
               <p className="font-medium mb-2">데이터 이용 약관</p>
               <ul className="space-y-1 text-xs">
                 <li>• 본 데이터는 연구 및 분석 목적으로만 사용 가능합니다</li>
-                <li>• 개인정보는 모두 익명화 처리되었습니다</li>
                 <li>• 상업적 재배포는 금지되며, 출처 명시가 필요합니다</li>
                 <li>• 데이터 사용 시 발생하는 모든 책임은 사용자에게 있습니다</li>
               </ul>
