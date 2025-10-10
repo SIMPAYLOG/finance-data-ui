@@ -49,7 +49,7 @@ export default function HeatmapChart({
   const hours = Array.from({ length: 24 }, (_, i) => i)
 
   const getIntensity = (day: number, hour: number) => {
-    const point = data.find((d) => d.dayOfWeek === day + 1 && d.hour === hour)
+    const point = data.find((d) => d.dayOfWeek === day && d.hour === hour)
     if (!point) return 0
     const max = Math.max(...data.map((d) => d.count)) || 1
     return point.count / max
